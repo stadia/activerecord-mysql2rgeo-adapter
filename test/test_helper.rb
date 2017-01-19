@@ -2,7 +2,7 @@ require "minitest/autorun"
 require "minitest/pride"
 require "mocha/mini_test"
 require "active_record"
-require "activerecord-postgis-adapter"
+require "activerecord-mysql2rgeo-adapter"
 
 begin
   require "byebug"

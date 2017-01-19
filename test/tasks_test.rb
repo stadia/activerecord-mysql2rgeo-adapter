@@ -3,26 +3,12 @@ require "active_record/schema_dumper"
 
 class TasksTest < ActiveSupport::TestCase  # :nodoc:
   NEW_CONNECTION = {
-    "adapter"            => "postgis",
+    "adapter"            => "mysql2rgeo",
     "host"               => "127.0.0.1",
-    "database"           => "postgis_tasks_test",
-    "username"           => "postgres",
-    "setup"              => "default",
-    "schema_search_path" => "public",
-  }
-
-  def test_create_database_from_extension_in_public_schema
-    drop_db_if_exists
-    ActiveRecord::Tasks::DatabaseTasks.create(NEW_CONNECTION)
-    refute_empty connection.select_values("SELECT * from public.spatial_ref_sys")
-  end
-
-  def test_create_database_from_extension_in_separate_schema
-    drop_db_if_exists
-    configuration = NEW_CONNECTION.merge("postgis_schema" => "postgis")
-    ActiveRecord::Tasks::DatabaseTasks.create(configuration)
-    refute_empty connection.select_values("SELECT * from postgis.spatial_ref_sys")
-  end
+    "port"               => "3306",
+    "username"               => "root",
+    "database"           => "mysql2rgeo_tasks_test"
+  }.freeze
 
   def test_empty_sql_dump
     setup_database_tasks
@@ -34,30 +20,15 @@ class TasksTest < ActiveSupport::TestCase  # :nodoc:
   def test_sql_dump
     setup_database_tasks
     connection.create_table(:spatial_test, force: true) do |t|
-      t.st_point "latlon", geographic: true
+      t.point "latlon", geographic: true
       t.geometry "geo_col", srid: 4326
       t.column "poly", :multi_polygon, srid: 4326
     end
     ActiveRecord::Tasks::DatabaseTasks.structure_dump(NEW_CONNECTION, tmp_sql_filename)
     data = File.read(tmp_sql_filename)
-    assert(data.index("latlon geography(Point,4326)"))
-    assert(data.index("geo_col geometry(Geometry,4326)"))
-    assert(data.index("poly geometry(MultiPolygon,4326)"))
-  end
-
-  def test_index_sql_dump
-    setup_database_tasks
-    connection.create_table(:spatial_test, force: true) do |t|
-      t.st_point "latlon", geographic: true
-      t.string "name"
-    end
-    connection.add_index :spatial_test, :latlon, using: :gist
-    connection.add_index :spatial_test, :name, using: :btree
-    ActiveRecord::Tasks::DatabaseTasks.structure_dump(NEW_CONNECTION, tmp_sql_filename)
-    data = File.read(tmp_sql_filename)
-    assert(data.index("latlon geography(Point,4326)"))
-    assert data.index("CREATE INDEX index_spatial_test_on_latlon ON spatial_test USING gist (latlon);")
-    assert data.index("CREATE INDEX index_spatial_test_on_name ON spatial_test USING btree (name);")
+    assert(data.index("`latlon` point"))
+    assert(data.index("`geo_col` geometry"))
+    assert(data.index("`poly` multipolygon"))
   end
 
   def test_empty_schema_dump
@@ -73,42 +44,58 @@ class TasksTest < ActiveSupport::TestCase  # :nodoc:
     setup_database_tasks
     connection.create_table(:spatial_test, force: true) do |t|
       t.geometry "object1"
-      t.spatial "object2", srid: connection.default_srid, type: "geometry"
+      t.spatial "object2", srid: connection.default_srid, limit: { type: "geometry" }
     end
     File.open(tmp_sql_filename, "w:utf-8") do |file|
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
-    assert data.index("t.geometry \"object1\", limit: {:srid=>#{connection.default_srid}, :type=>\"geometry\"")
-    assert data.index("t.geometry \"object2\", limit: {:srid=>#{connection.default_srid}, :type=>\"geometry\"")
+    assert data.index("t.spatial \"object1\", limit: {:type=>\"geometry\"}")
+    assert data.index("t.spatial \"object2\", limit: {:type=>\"geometry\"}")
   end
 
   def test_basic_geography_schema_dump
     setup_database_tasks
     connection.create_table(:spatial_test, force: true) do |t|
-      t.st_point "latlon1", geographic: true
-      t.spatial "latlon2", srid: 4326, type: "st_point", geographic: true
+      t.point "latlon1", geographic: true
+      t.spatial "latlon2", srid: 4326, geographic: true, limit: { type: "point" }
     end
     File.open(tmp_sql_filename, "w:utf-8") do |file|
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
-    assert data.index(%(t.geography "latlon1", limit: {:srid=>4326, :type=>"point", :geographic=>true}))
-    assert data.index(%(t.geography "latlon2", limit: {:srid=>4326, :type=>"point", :geographic=>true}))
+    assert data.index(%(t.spatial "latlon1", limit: {:type=>"point"}))
+    assert data.index(%(t.spatial "latlon2", limit: {:type=>"point"}))
+  end
+
+  def test_index_sql_dump
+    setup_database_tasks
+    connection.create_table(:spatial_test, force: true) do |t|
+      t.point "latlon", null: false, geographic: true
+      t.string "name"
+    end
+    connection.add_index :spatial_test, :latlon, type: :spatial
+    connection.add_index :spatial_test, :name, using: :btree
+    ActiveRecord::Tasks::DatabaseTasks.structure_dump(NEW_CONNECTION, tmp_sql_filename)
+    data = File.read(tmp_sql_filename)
+    assert(data.index("`latlon` point NOT NULL"))
+    assert data.index("SPATIAL KEY `index_spatial_test_on_latlon` (`latlon`)")
+    assert data.index("KEY `index_spatial_test_on_name` (`name`) USING BTREE")
   end
 
   def test_index_schema_dump
     setup_database_tasks
     connection.create_table(:spatial_test, force: true) do |t|
-      t.st_point "latlon", geographic: true
+      t.point "latlon", null:false, geographic: true
     end
-    connection.add_index :spatial_test, :latlon, using: :gist
+    connection.add_index :spatial_test, :latlon, type: :spatial
     File.open(tmp_sql_filename, "w:utf-8") do |file|
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
-    assert data.index(%(t.geography "latlon", limit: {:srid=>4326, :type=>"point", :geographic=>true}))
-    assert data.index(%(t.index ["latlon"], name: "index_spatial_test_on_latlon", using: :gist))
+    puts data
+    # assert data.index(%(t.point "latlon", limit: {:srid=>4326, :type=>"point", :geographic=>true}))
+    # assert data.index(%(t.index ["latlon"], name: "index_spatial_test_on_latlon", type: :spatial))
   end
 
   def test_add_index_with_no_options
@@ -119,7 +106,7 @@ class TasksTest < ActiveSupport::TestCase  # :nodoc:
     connection.add_index :test, :name
     ActiveRecord::Tasks::DatabaseTasks.structure_dump(NEW_CONNECTION, tmp_sql_filename)
     data = File.read(tmp_sql_filename)
-    assert data.index("CREATE INDEX index_test_on_name ON test USING btree (name);")
+    assert data.index("KEY `index_test_on_name` (`name`)")
   end
 
   def test_add_index_via_references
@@ -130,7 +117,7 @@ class TasksTest < ActiveSupport::TestCase  # :nodoc:
     end
     ActiveRecord::Tasks::DatabaseTasks.structure_dump(NEW_CONNECTION, tmp_sql_filename)
     data = File.read(tmp_sql_filename)
-    assert data.index("CREATE INDEX index_dogs_on_cats_id ON dogs USING btree (cats_id);")
+    assert data.index("KEY `index_dogs_on_cats_id` (`cats_id`)")
   end
 
   private
@@ -147,13 +134,13 @@ class TasksTest < ActiveSupport::TestCase  # :nodoc:
     FileUtils.rm_f(tmp_sql_filename)
     FileUtils.mkdir_p(::File.dirname(tmp_sql_filename))
     drop_db_if_exists
-    ActiveRecord::ConnectionAdapters::PostGIS::PostGISDatabaseTasks.new(NEW_CONNECTION).create
+    ActiveRecord::Tasks::MySQLDatabaseTasks.new(NEW_CONNECTION).create
   rescue ActiveRecord::Tasks::DatabaseAlreadyExists
     # ignore
   end
 
   def drop_db_if_exists
-    ActiveRecord::ConnectionAdapters::PostGIS::PostGISDatabaseTasks.new(NEW_CONNECTION).drop
+    ActiveRecord::Tasks::MySQLDatabaseTasks.new(NEW_CONNECTION).drop
   rescue ActiveRecord::Tasks::DatabaseAlreadyExists
     # ignore
   end

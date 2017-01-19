@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
-    module PostGIS
-      VERSION = "4.0.2"
+    module Mysql2Rgeo
+      VERSION = "4.0.2".freeze
     end
   end
 end

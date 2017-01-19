@@ -1,6 +1,6 @@
 module ActiveRecord  # :nodoc:
   module ConnectionAdapters  # :nodoc:
-    module PostGIS  # :nodoc:
+    module Mysql2Rgeo  # :nodoc:
       def self.initial_setup
         ::ActiveRecord::SchemaDumper.ignore_tables |= %w(
           geography_columns

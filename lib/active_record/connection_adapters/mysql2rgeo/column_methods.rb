@@ -1,10 +1,10 @@
 module ActiveRecord
   module ConnectionAdapters
-    module PostGIS
+    module Mysql2Rgeo
       module ColumnMethods
         def spatial(name, options = {})
-          raise "You must set a type. For example: 't.spatial type: :st_point'" unless options[:type]
-          column(name, options[:type], options)
+          raise "You must set a type. For example: 't.spatial limit: { type: 'point' }'" if options[:limit].blank? || options[:limit][:type].blank?
+          column(name, options[:limit][:type], options)
         end
 
         def geography(name, options = {})
@@ -35,16 +35,16 @@ module ActiveRecord
           column(name, :multi_polygon, options)
         end
 
-        def st_point(name, options = {})
-          column(name, :st_point, options)
+        def point(name, options = {})
+          column(name, :point, options)
         end
 
-        def st_polygon(name, options = {})
-          column(name, :st_polygon, options)
+        def polygon(name, options = {})
+          column(name, :polygon, options)
         end
       end
 
-      PostgreSQL::Table.send(:include, ColumnMethods)
+      MySQL::Table.send(:include, ColumnMethods)
     end
   end
 end

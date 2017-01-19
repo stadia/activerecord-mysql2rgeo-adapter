@@ -1,6 +1,5 @@
-adapter: postgis
+adapter: mysql2rgeo
 host: 127.0.0.1
-database: postgis_adapter_test
-username: postgres
+port: 3306
+database: mysql2rgeo_adapter_test
 setup: default
-schema_search_path: public

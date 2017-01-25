@@ -41,10 +41,10 @@ class BasicTest < ActiveSupport::TestCase  # :nodoc:
     obj.latlon = factory.point(1.0, 2.0)
     obj.save!
     id = obj.id
-    # obj2 = SpatialModel.select('latlon').find(id)
-    # assert_equal factory.point(1.0, 2.0), obj2.latlon
+    obj2 = SpatialModel.find(id)
+    assert_equal factory.point(1.0, 2.0), obj2.latlon
     # assert_equal 3785, obj2.latlon.srid
-    # assert_equal true, RGeo::Geos.is_geos?(obj2.latlon)
+    assert_equal true, RGeo::Geos.is_geos?(obj2.latlon)
   end
 
   def test_save_and_load_geographic_point

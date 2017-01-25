@@ -54,27 +54,7 @@ module ActiveRecord
           m.alias_type %r(point)i, 'geometry'
           m.alias_type %r(linestring)i, 'geometry'
           m.alias_type %r(polygon)i, 'geometry'
-
         end
-        # def initialize_type_map(map)
-        #   super
-        #
-        #   %w(
-        #     geography
-        #     geometry
-        #     geometry_collection
-        #     line_string
-        #     multi_line_string
-        #     multi_point
-        #     multi_polygon
-        #     point
-        #     polygon
-        #   ).each do |geo_type|
-        #     map.register_type(geo_type) do |sql_type|
-        #       Type::Spatial.new(sql_type)
-        #     end
-        #   end
-        # end
       end
     end
   end

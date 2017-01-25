@@ -54,7 +54,18 @@ module Arel  # :nodoc:
 
         collector = maybe_visit o.set_quantifier, collector
 
-        collect_nodes_for o.projections, collector, SPACE
+        projections = o.projections
+        len = o.projections.length - 1
+        if len == 0
+          if !o.projections.first.nil? && o.projections.first.respond_to?(:relation)
+            projections = []
+            column_cache(o.projections.first.relation.name).keys.each do |x|
+              projections << o.projections.first.relation[x.to_sym]
+            end
+          end
+        end
+
+        collect_nodes_for projections, collector, SPACE
 
         if o.source && !o.source.empty?
           collector << " FROM "
@@ -75,7 +86,7 @@ module Arel  # :nodoc:
       def visit_Arel_Attributes_Attribute o, collector
         join_name = o.relation.table_alias || o.relation.name
 
-        if column_for(o).type == :spatial
+        if column_for(o)&.type == :spatial
           collector << "ST_AsText(#{quote_table_name join_name}.#{quote_column_name o.name}) as #{quote_column_name o.name}"
         else
           collector << "#{quote_table_name join_name}.#{quote_column_name o.name}"

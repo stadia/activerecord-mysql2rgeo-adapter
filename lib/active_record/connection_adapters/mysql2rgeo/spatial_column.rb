@@ -19,20 +19,45 @@ module ActiveRecord # :nodoc:
           super(name, default, sql_type_metadata, null, table_name, default_function, collation)
           @comment = comment
           if spatial?
-            @limit = { type: @geometric_type.type_name.underscore }
-          else
-            @limit = sql_type_metadata.limit
+            if @srid
+              @limit = { type: @geometric_type.type_name.underscore }
+              @limit[:srid] = @srid if @srid
+            end
           end
         end
 
-        attr_reader :geometric_type, :limit, :srid
+        attr_reader :geometric_type, :srid
+
+        def has_z
+          false
+        end
+
+        def has_m
+          false
+        end
+
+        def geographic
+          false
+        end
+
+        alias :has_z? :has_z
+        alias :has_m? :has_m
+        alias :geographic? :geographic
+
+        def limit
+          if spatial?
+            @limit
+          else
+            super
+          end
+        end
 
         def klass
           type == :spatial ? ::RGeo::Feature::Geometry : super
         end
 
         def spatial?
-          type == :spatial
+          !@geometric_type.nil?
         end
 
         private
@@ -41,7 +66,7 @@ module ActiveRecord # :nodoc:
         end
 
         def build_from_sql_type(sql_type)
-          geo_type, @srid = Type::Spatial.parse_sql_type(sql_type)
+          geo_type, @srid, @has_z, @has_m = Type::Spatial.parse_sql_type(sql_type)
           set_geometric_type_from_name(geo_type)
         end
       end

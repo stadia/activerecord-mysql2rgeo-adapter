@@ -32,7 +32,7 @@ module Arel  # :nodoc:
           case value
             when Nodes::SqlLiteral, Nodes::BindParam
               if column_for(attr)&.type == :spatial
-                collector << 'ST_GeomFromText(?)'
+                collector << 'ST_GeomFromText( ? )'
               else
                 collector = visit value, collector
               end
@@ -47,7 +47,7 @@ module Arel  # :nodoc:
         collector << ")"
       end
 
-      def visit_Arel_Nodes_SelectCore o, collector
+      def visit_Arel_Nodes_SelectCore(o, collector)
         collector << "SELECT"
 
         collector = maybe_visit o.top, collector
@@ -83,10 +83,27 @@ module Arel  # :nodoc:
         collector
       end
 
-      def visit_Arel_Attributes_Attribute o, collector
+      def visit_Arel_Nodes_Equality o, collector
+        right = o.right
+
+        collector = visit o.left, collector
+
+        if right.nil?
+          collector << " IS NULL"
+        else
+          if column_for(o.left)&.type == :spatial
+            collector << " = ST_GeomFromText( ? )"
+          else
+            collector << " = "
+            visit right, collector
+          end
+        end
+      end
+
+      def visit_Arel_Attributes_Attribute(o, collector)
         join_name = o.relation.table_alias || o.relation.name
 
-        if column_for(o)&.type == :spatial
+        if column_for(o)&.type == :spatial && !collector.value.include?("WHERE")
           collector << "ST_AsText(#{quote_table_name join_name}.#{quote_column_name o.name}) as #{quote_column_name o.name}"
         else
           collector << "#{quote_table_name join_name}.#{quote_column_name o.name}"

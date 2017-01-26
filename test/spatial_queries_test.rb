@@ -7,7 +7,7 @@ class SpatialQueriesTest < ActiveSupport::TestCase  # :nodoc:
     obj.latlon = factory.point(1.0, 2.0)
     obj.save!
     id = obj.id
-    obj2 = SpatialModel.where(latlon: factory.multi_point([factory.point(1.0, 2.0)])).first
+    obj2 = SpatialModel.where(latlon: factory.point(1.0, 2.0)).first
     refute_nil(obj2)
     assert_equal(id, obj2.id)
     obj3 = SpatialModel.where(latlon: factory.point(2.0, 2.0)).first

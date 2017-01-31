@@ -130,14 +130,14 @@ Style/ExtraSpacing:
 # Configuration parameters: Exclude.
 Style/FileName:
   Exclude:
-    - 'lib/activerecord-postgis-adapter.rb'
+    - 'lib/activerecord-mysql2rgeo-adapter.rb'
 
 # Offense count: 3
 # Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/FirstParameterIndentation:
   Exclude:
-    - 'activerecord-postgis-adapter.gemspec'
+    - 'activerecord-mysql2rgeo-adapter.gemspec'
     - 'lib/active_record/connection_adapters/postgis/postgis_database_tasks.rb'
 
 # Offense count: 2

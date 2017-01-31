@@ -2,7 +2,7 @@
 
 Fork the repo:
 
-`git clone git@github.com:rgeo/activerecord-postgis-adapter.git`
+`git clone git@github.com:stadia/activerecord-mysql2rgeo-adapter.git`
 
 Set up your test database:
 

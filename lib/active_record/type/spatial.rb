@@ -1,13 +1,13 @@
 module ActiveRecord
   module Type
     class Spatial < Value # :nodoc:
-      #sql_type is a string that comes from the database definition
+      # sql_type is a string that comes from the database definition
       # examples:
       #   "geometry"
       #   "geography"
       #   "geometry NOT NULL"
       #   "geometry"
-      def initialize(sql_type)
+      def initialize(sql_type = 'geometry')
         @sql_type = sql_type
         @geo_type, @srid = self.class.parse_sql_type(sql_type)
       end

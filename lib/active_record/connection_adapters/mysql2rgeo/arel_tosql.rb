@@ -83,7 +83,7 @@ module Arel  # :nodoc:
         collector
       end
 
-      def visit_Arel_Nodes_Equality o, collector
+      def visit_Arel_Nodes_Equality(o, collector)
         right = o.right
 
         collector = visit o.left, collector
@@ -91,7 +91,7 @@ module Arel  # :nodoc:
         if right.nil?
           collector << " IS NULL"
         else
-          if column_for(o.left)&.type == :spatial
+          if o.left.respond_to?(:relation) && column_for(o.left)&.type == :spatial
             collector << " = ST_GeomFromText( ? )"
           else
             collector << " = "
@@ -109,6 +109,15 @@ module Arel  # :nodoc:
           collector << "#{quote_table_name join_name}.#{quote_column_name o.name}"
         end
       end
+
+      def visit_String(node, collector)
+        collector << "#{st_func('ST_WKTToSQL')}(#{quote(node)})"
+      end
+
+      def visit_RGeo_ActiveRecord_SpatialNamedFunction(node, collector)
+        aggregate(st_func(node.name), node, collector)
+      end
     end
   end
 end
+# SELECT * FROM spatial_models WHERE (ST_Distance(latlon, ST_GeomFromText('POINT(2 3)')) < 2);

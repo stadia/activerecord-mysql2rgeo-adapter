@@ -29,6 +29,7 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
     col = klass.columns.last
     assert_equal RGeo::Feature::Geometry, col.geometric_type
     assert_equal true, col.spatial?
+    assert_equal false, col.geographic?
     assert_equal 0, col.srid
     klass.connection.drop_table(:spatial_models)
   end
@@ -41,6 +42,7 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
     col = klass.columns.last
     assert_equal RGeo::Feature::Geometry, col.geometric_type
     assert_equal true, col.spatial?
+    assert_equal false, col.geographic?
     assert_equal 0, col.srid
   end
 
@@ -60,7 +62,6 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
       t.index([:latlon], type: :spatial)
     end
     klass.reset_column_information
-    assert_not_nil klass.connection.indexes(:spatial_models).last
   end
 
   def test_add_geometry_column
@@ -78,6 +79,7 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
     assert_equal true, columns[-3].spatial?
     assert_equal RGeo::Feature::Point, columns[-2].geometric_type
     assert_equal 0, columns[-2].srid
+    assert_equal false, columns[-2].geographic?
     assert_equal true, columns[-2].spatial?
     assert_nil columns[-1].geometric_type
     assert_equal false, columns[-1].spatial?
@@ -114,10 +116,12 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
     # geom3
     assert_equal RGeo::Feature::Point, cols[-3].geometric_type
     assert_equal 0, cols[-3].srid
+    assert_equal false, cols[-3].geographic?
     assert_equal true, cols[-3].spatial?
     # geom2
     assert_equal RGeo::Feature::Point, cols[-2].geometric_type
     assert_equal 0, cols[-2].srid
+    assert_equal false, cols[-2].geographic?
     assert_equal true, cols[-2].spatial?
     # name
     assert_nil cols[-1].geometric_type
@@ -137,6 +141,7 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
     assert_equal RGeo::Feature::Geometry, cols[-1].geometric_type
     assert_equal "latlon", cols[-1].name
     assert_equal 0, cols[-1].srid
+    assert_equal false, cols[-1].geographic?
   end
 
   def test_drop_geography_column
@@ -152,8 +157,10 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
     columns = klass.columns
     assert_equal RGeo::Feature::Point, columns[-1].geometric_type
     assert_equal "geom3", columns[-1].name
+    assert_equal false, columns[-1].geographic?
     assert_equal RGeo::Feature::Geometry, columns[-2].geometric_type
     assert_equal "latlon", columns[-2].name
+    assert_equal false, columns[-2].geographic?
   end
 
   def test_create_simple_geometry_using_shortcut
@@ -163,6 +170,7 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
     klass.reset_column_information
     col = klass.columns.last
     assert_equal RGeo::Feature::Geometry, col.geometric_type
+    assert_equal false, col.geographic?
     assert_equal 0, col.srid
     klass.connection.drop_table(:spatial_models)
   end
@@ -174,6 +182,7 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
     klass.reset_column_information
     col = klass.columns.last
     assert_equal RGeo::Feature::Geometry, col.geometric_type
+    assert_equal false, col.geographic?
     assert_equal 0, col.srid
   end
 
@@ -192,7 +201,7 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
     klass.reset_column_information
     col = klass.columns.last
     assert_equal RGeo::Feature::Geometry, col.geometric_type
-    assert_equal({type: "geometry" }, col.limit)
+    assert_equal({ srid: 0, type: "geometry" }, col.limit)
   end
 
   def test_create_polygon_with_options
@@ -202,31 +211,34 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
     klass.reset_column_information
     col = klass.columns.last
     assert_equal RGeo::Feature::Polygon, col.geometric_type
+    assert_equal false, col.geographic?
+    assert_equal false, col.has_z?
+    assert_equal false, col.has_m?
     assert_equal 0, col.srid
-    assert_equal({ type: "polygon" }, col.limit)
+    assert_equal({ type: "polygon", srid: 0 }, col.limit)
     klass.connection.drop_table(:spatial_models)
   end
 
   # Ensure that null contraints info is getting captured like the
   # normal adapter.
-  # def test_null_constraints
-  #   klass.connection.create_table(:spatial_models, force: true) do |t|
-  #     t.column "nulls_allowed", :string, null: true
-  #     t.column "nulls_disallowed", :string, null: false
-  #   end
-  #   klass.reset_column_information
-  #   assert_equal true, klass.columns[-2].null
-  #   assert_equal false, klass.columns[-1].null
-  # end
+  def test_null_constraints
+    klass.connection.create_table(:spatial_models, force: true) do |t|
+      t.column "nulls_allowed", :string, null: true
+      t.column "nulls_disallowed", :string, null: false
+    end
+    klass.reset_column_information
+    assert_equal true, klass.columns[-2].null
+    assert_equal false, klass.columns[-1].null
+  end
 
   # Ensure column default value works like the Postgres adapter.
-  # def test_column_defaults
-  #   klass.connection.create_table(:spatial_models, force: true) do |t|
-  #     t.column "sample_integer", :integer, default: -1
-  #   end
-  #   klass.reset_column_information
-  #   assert_equal(-1, klass.new.sample_integer)
-  # end
+  def test_column_defaults
+    klass.connection.create_table(:spatial_models, force: true) do |t|
+      t.column "sample_integer", :integer, default: -1
+    end
+    klass.reset_column_information
+    assert_equal(-1, klass.new.sample_integer)
+  end
 
   def test_column_types
     klass.connection.create_table(:spatial_models, force: true) do |t|
@@ -242,21 +254,21 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
 
   def test_reload_dumped_schema
     klass.connection.create_table(:spatial_models, force: true) do |t|
-      t.geometry "latlon1", limit: { srid: 4326, type: "point", geographic: true }
+      t.geography "latlon1", limit: { srid: 4326, type: "point", geographic: true }
     end
     klass.reset_column_information
     col = klass.columns.last
     assert_equal 0, col.srid
   end
 
-  # def test_non_spatial_column_limits
-  #   klass.connection.create_table(:spatial_models, force: true) do |t|
-  #     t.string :foo, limit: 123
-  #   end
-  #   klass.reset_column_information
-  #   col = klass.columns.last
-  #   assert_equal 123, col.limit
-  # end
+  def test_non_spatial_column_limits
+    klass.connection.create_table(:spatial_models, force: true) do |t|
+      t.string :foo, limit: 123
+    end
+    klass.reset_column_information
+    col = klass.columns.last
+    assert_equal 123, col.limit
+  end
 
   private
 

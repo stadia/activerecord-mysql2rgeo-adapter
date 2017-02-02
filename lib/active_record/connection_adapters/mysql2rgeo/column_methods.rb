@@ -8,7 +8,8 @@ module ActiveRecord
         end
 
         def geography(name, options = {})
-          column(name, :geography, options)
+          type = options.dig(:limit, :type)
+          column(name, type.nil? ? :geometry : type, options)
         end
 
         def geometry(name, options = {})

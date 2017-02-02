@@ -1,13 +1,13 @@
 module ActiveRecord
   module Type
     class Spatial < Value # :nodoc:
-      #sql_type is a string that comes from the database definition
+      # sql_type is a string that comes from the database definition
       # examples:
       #   "geometry"
       #   "geography"
       #   "geometry NOT NULL"
       #   "geometry"
-      def initialize(sql_type)
+      def initialize(sql_type = 'geometry')
         @sql_type = sql_type
         @geo_type, @srid = self.class.parse_sql_type(sql_type)
       end
@@ -20,13 +20,15 @@ module ActiveRecord
       #   has_z:    false
       #   has_m:    false
       def self.parse_sql_type(sql_type)
-        geo_type, srid = nil, 0
+        geo_type, srid, has_z, has_m = nil, 0, false, false
 
         if sql_type =~ /[geography,geometry]\((.*)\)$/i
           # geometry(Point,4326)
           params = Regexp.last_match(1).split(",")
           if params.size > 1
             if params.first =~ /([a-z]+[^zm])(z?)(m?)/i
+              has_z = Regexp.last_match(2).length > 0
+              has_m = Regexp.last_match(3).length > 0
               geo_type = Regexp.last_match(1)
             end
             if params.last =~ /(\d+)/
@@ -40,7 +42,7 @@ module ActiveRecord
           # geometry
           geo_type = sql_type
         end
-        [geo_type, srid]
+        [geo_type, srid, has_z, has_m]
       end
 
       def klass

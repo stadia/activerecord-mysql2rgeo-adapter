@@ -1,7 +1,7 @@
 require "./lib/active_record/connection_adapters/mysql2rgeo/version.rb"
 
 Gem::Specification.new do |spec|
-  spec.name = "activerecord-postgis-adapter"
+  spec.name = "activerecord-mysql2rgeo-adapter"
   spec.summary = "ActiveRecord adapter for PostGIS, based on RGeo."
   spec.description =
     "ActiveRecord connection adapter for PostGIS. It is based on the stock PostgreSQL adapter, and adds " \
@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.version = ActiveRecord::ConnectionAdapters::Mysql2Rgeo::VERSION
   spec.author = "Daniel Azuma, Tee Parham"
   spec.email = "stadia@gmail.com"
-  spec.homepage = "http://github.com/stadia/activerecord-postgis-adapter"
+  spec.homepage = "http://github.com/stadia/activerecord-mysql2rgeo-adapter"
   spec.licenses = ["BSD"]
 
   spec.files = Dir["lib/**/*", "LICENSE.txt"]

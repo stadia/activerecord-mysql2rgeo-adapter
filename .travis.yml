@@ -11,8 +11,7 @@ matrix:
   allow_failures:
     - rvm: jruby-9.0.5.0
 addons:
-  postgresql: "9.4"
+  mysql: "5.6"
 before_script:
-  - psql -U postgres -c "create database postgis_adapter_test"
-  - psql -U postgres -d postgis_adapter_test -c "create extension postgis"
+  - echo "create database mysql2rgeo_adapter_test" | mysql -u mysql
 script: bundle exec rake test

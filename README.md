@@ -1,13 +1,7 @@
-# PostGIS ActiveRecord Adapter
+# Mysql2Rgeo ActiveRecord Adapter
 
-[![Gem Version](https://badge.fury.io/rb/activerecord-postgis-adapter.svg)](http://badge.fury.io/rb/activerecord-postgis-adapter)
-[![Build Status](https://travis-ci.org/rgeo/activerecord-postgis-adapter.svg?branch=master)](https://travis-ci.org/rgeo/activerecord-postgis-adapter)
-[![Code Climate](https://codeclimate.com/github/rgeo/activerecord-postgis-adapter.png)](https://codeclimate.com/github/rgeo/activerecord-postgis-adapter)
-
-The activerecord-postgis-adapter provides access to features
-of the PostGIS geospatial database from ActiveRecord. It extends
-the standard postgresql adapter to provide support for the spatial data types
-and features added by the PostGIS extension. It uses the
+The activerecord-mysql2rgeo-adapter provides access to features
+of the MySQL geospatial database from ActiveRecord. It uses the
 [RGeo](http://github.com/rgeo/rgeo) library to represent spatial data in Ruby.
 
 ## Overview
@@ -29,19 +23,20 @@ RGeo objects can be embedded in where clauses.
 
 ## Install
 
-The adapter requires PostgreSQL 9.0+.
+The adapter requires Mysql 5.6+.
 
 Gemfile:
 
 ```ruby
-gem 'activerecord-postgis-adapter'
+gem 'activerecord-mysql2rgeo-adapter'
 ```
 
 Gemfile for JRuby:
 
 ```ruby
-gem 'activerecord-postgis-adapter'
-gem 'activerecord-jdbcpostgresql-adapter', '~> 1.3.9'
+gem 'activerecord-mysql2rgeo-adapter'
+gem 'jdbc-mysql', platform: :jruby
+gem 'activerecord-jdbc-adapter', platform: :jruby
 gem 'ffi-geos'
 ```
 
@@ -54,7 +49,6 @@ Requirements:
 ```
 ActiveRecord 5.0+
 Ruby 2.2.2+, JRuby
-PostGIS 2.0+
 ```
 
 #### Version 3.x supports ActiveRecord 4.2
@@ -64,79 +58,59 @@ Requirements:
 ```
 ActiveRecord 4.2
 Ruby 1.9.3+, JRuby
-PostGIS 2.0+
 ```
 
 #### Version 2.x supports ActiveRecord 4.0.x and 4.1.x
 
-_If you are using version 2.x, you should read [the version 2.x README](https://github.com/rgeo/activerecord-postgis-adapter/blob/2.0-stable/README.md)_
+_If you are using version 2.x, you should read [the version 2.x README](https://github.com/rgeo/activerecord-mysql2rgeo-adapter/blob/2.0-stable/README.md)_
 
 Requirements:
 
 ```
 ActiveRecord 4.0.0 - 4.1.x
 Ruby 1.9.3+, JRuby
-PostGIS 2.0+
 ```
 
 #### Version 0.6.x supports ActiveRecord 3.x
 
-_If you are using version 0.6.x, you should read [the version 0.6.x / 2.x README](https://github.com/rgeo/activerecord-postgis-adapter/blob/2.0-stable/README.md)_
+_If you are using version 0.6.x, you should read [the version 0.6.x / 2.x README](https://github.com/rgeo/activerecord-mysql2rgeo-adapter/blob/2.0-stable/README.md)_
 
 Requirements:
 
 ```
 ActiveRecord 3.x only
 Ruby 1.8.7+, JRuby, Rubinius
-PostGIS 1.5+
 ```
 
 Gemfile:
 
 ```ruby
-gem 'activerecord-postgis-adapter', '~> 0.6.6'
+gem 'activerecord-mysql2rgeo-adapter', '~> 0.6.6'
 ```
-
-Please read [PostGIS 1 Notes](https://github.com/rgeo/activerecord-postgis-adapter/blob/master/PostGIS_1.md)
-if you would like to use the adapter with an older version of PostGIS.
 
 ##### database.yml
 
-You must modify your `config/database.yml` file to use the postgis
+You must modify your `config/database.yml` file to use the mysql2rgeo
 adapter. At minimum, you will need to change the `adapter` field from
-`postgresql` to `postgis`. Recommended configuration:
+`mysql2` to `mysql2rgeo`. Recommended configuration:
 
 ```
 development:
   username:           your_username
-  adapter:            postgis
+  adapter:            mysql2rgeo
   host:               localhost
-  schema_search_path: public
-```
-
-If you have installed your PostGIS extension in a schema other than `public`, which
-is the default, add that schema to your `schema_search_path`:
-
-```
-development:
-  schema_search_path: public, postgis
 ```
 
 Here are some other options that are supported:
 
 ```
 development:
-  adapter: postgis
+  adapter: mysql2rgeo
   encoding: unicode
-  postgis_extension: postgis      # default is postgis
-  postgis_schema: public          # default is public
-  schema_search_path: public,postgis
   pool: 5
   database: my_app_development    # your database name
   username: my_app_user           # the username your app will use to connect
   password: my_app_password       # the user's password
-  su_username: my_global_user     # a superuser for the database
-  su_password: my_global_pasword  # the superuser's password
 ```
 
 ##### `rgeo` dependency
@@ -151,17 +125,17 @@ to add geospatial capabilities to an existing Rails application (i.e. you need
 to convert a non-spatial database to a spatial database), see the section on
 "Upgrading a Database With Spatial Features" below.
 
-To create a new Rails application using `activerecord-postgis-adapter`, start by
-using the postgresql adapter.
+To create a new Rails application using `activerecord-mysql2rgeo-adapter`, start by
+using the mysql2 adapter.
 
 ```sh
-rails new my_app --database=postgresql
+rails new my_app --database=mysql
 ```
 
 Add the adapter gem to the Gemfile:
 
 ```ruby
-gem 'activerecord-postgis-adapter'
+gem 'activerecord-mysql2rgeo-adapter'
 ```
 
 Once you have set up your database config, run:
@@ -179,19 +153,11 @@ Once you have installed the adapter, edit your `config/database.yml` as describe
 If you have an existing Rails app that uses Postgres,
 and you want to add geospatial features, follow these steps.
 
-First, add the `activerecord-postgis-adapter` gem to the Gemfile, and update
+First, add the `activerecord-mysql2rgeo-adapter` gem to the Gemfile, and update
 your bundle by running `bundle install`.
 
-Next, modify your `config/database.yml` file to invoke the postgis adapter, as
+Next, modify your `config/database.yml` file to invoke the mysql2rgeo adapter, as
 described above.
-
-Once you have set up your database configs, run:
-
-```sh
-rake db:gis:setup
-```
-
-This rake task adds the PostGIS extension to your existing database.
 
 ### Creating Spatial Tables
 
@@ -201,7 +167,7 @@ different kinds of collections. These types are defined in a standard produced
 by the Open Geospatial Consortium. You can specify options indicating the coordinate
 system and number of coordinates for the values you are storing.
 
-The activerecord-postgis-adapter extends ActiveRecord's migration syntax to
+The activerecord-mysql2rgeo-adapter extends ActiveRecord's migration syntax to
 support these spatial types. The following example creates five spatial
 columns in a table:
 
@@ -237,7 +203,7 @@ that also includes a third "z" coordinate that can be used to store height
 information.
 
 The following are the data types understood by PostGIS and exposed by
-activerecord-postgis-adapter:
+activerecord-mysql2rgeo-adapter:
 
 * `:geometry` -- Any geometric type
 * `:point` -- Point data
@@ -267,28 +233,25 @@ Following are the options understood by the adapter:
 To create a PostGIS spatial index, add `using: :gist` to your index:
 
 ```ruby
-add_index :my_table, :lonlat, using: :gist
+add_index :my_table, :lonlat, type: :spatial
 
 # or
 
 change_table :my_table do |t|
-  t.index :lonlat, using: :gist
+  t.index :lonlat, type: :spatial
 end
 ```
 
 ### Point and Polygon Types with ActiveRecord 4.2+
 
-Prior to version 3, the `point` and `polygon` types were supported. In ActiveRecord 4.2, the Postgresql
-adapter added support for the native Postgresql `point` and `polygon` types, which conflict with this
-adapter's types of the same names. The PostGIS point type must be referenced as `point`, and the
-PostGIS polygon type must be referenced as `st_polygon`.
+Prior to version 3, the `point` and `polygon` types were supported.
 
 ### Configuring ActiveRecord
 
 ActiveRecord's usefulness stems from the way it automatically configures
 classes based on the database structure and schema. If a column in the
 database has an integer type, ActiveRecord automatically casts the data to a
-Ruby Integer. In the same way, the activerecord-postgis-adapter automatically
+Ruby Integer. In the same way, the activerecord-mysql2rgeo-adapter automatically
 casts spatial data to a corresponding RGeo data type.
 
 RGeo offers more flexibility in its type system than can be
@@ -355,7 +318,7 @@ spherical factory for the `:lonlat` column:
 
 You can set a spatial attribute by providing an RGeo geometry object, or by
 providing the WKT string representation of the geometry. If a string is
-provided, the activerecord-postgis-adapter will attempt to parse it as WKT and
+provided, the activerecord-mysql2rgeo-adapter will attempt to parse it as WKT and
 set the value accordingly.
 
     record.lonlat = 'POINT(-122 47)'  # sets the value to the given point
@@ -366,7 +329,7 @@ the future, however, this will raise an exception.
     record.lonlat = 'POINT(x)'         # sets the value to nil
 
 If you set the value to an RGeo object, the factory needs to match the factory
-for the attribute. If the factories do not match, activerecord-postgis-adapter
+for the attribute. If the factories do not match, activerecord-mysql2rgeo-adapter
 will attempt to cast the value to the correct factory.
 
     p2 = factory.point(-122, 47)       # p2 is a point in a spherical factory
@@ -403,61 +366,16 @@ want to perform a spatial query, you'll look for, say, all the points within a
 given area. For those queries, you'll need to use the standard spatial SQL
 functions provided by PostGIS.
 
-## Background: PostGIS
-
-A spatial database is one that includes a set of data types, functions,
-tables, and other objects related to geospatial data. When these objects are
-present in your database, you can use them to store and query spatial objects
-such as points, lines, and polygons.
-
-PostGIS is an extension for PostgreSQL that provides definitions for the objects
-you need to add to a database to enable geospatial capabilities.
-
-When you create your Rails database as described above in the section on
-installation and configuration, activerecord-postgis-adapter automatically
-invokes PostGIS to add the appropriate definitions to your database. You can
-determine whether your database includes the correct definitions by attempting
-to invoke the POSTGIS_VERSION function:
-
-    SELECT POSTGIS_VERSION(); # succeeds if PostGIS objects are present.
-
-Standard spatial databases also include a table called `spatial_ref_sys`. This
-table includes a set of "spatial reference systems", or coordinate systems---
-for example, WGS84 latitude and longitude, or Mercator Projection. Spatial
-databases also usually include a table called `geometry_columns`, which
-includes information on each database column that includes geometric data. In
-recent versions of PostGIS, `geometry_columns` is actually not a table but a
-view into the system catalogs.
-
-
 ## Development and Support
-
-RDoc Documentation is available at http://rdoc.info/gems/activerecord-postgis-adapter
 
 Contributions are welcome. See CONTRIBUTING.md for instructions.
 
-Report issues at http://github.com/rgeo/activerecord-postgis-adapter/issues
+Report issues at http://github.com/stadia/activerecord-mysql2rgeo-adapter/issues
 
 Support is also available on the rgeo-users google group at http://groups.google.com/group/rgeo-users
 
-## Acknowledgments
-
-[Daniel Azuma](http://www.daniel-azuma.com) authored the PostGIS Adapter and its supporting
-libraries (including RGeo).
-[Tee Parham](https://twitter.com/teeparham) is the current maintainer.
-
-Development is supported by:
-
-* [Pirq](http://pirq.com)
-* [Neighborland](https://neighborland.com)
-
-This adapter implementation owes some debt to the spatial_adapter plugin
-(http://github.com/fragility/spatial_adapter). Although we made some different
-design decisions for this adapter, studying the spatial_adapter source gave us
-a head start on the implementation.
-
 ## License
 
-Copyright Daniel Azuma, Tee Parham
+Copyright Yongdae Hwang
 
-https://github.com/rgeo/activerecord-postgis-adapter/blob/master/LICENSE.txt
+https://github.com/stadia/activerecord-mysql2rgeo-adapter/blob/master/LICENSE.txt

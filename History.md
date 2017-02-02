@@ -192,7 +192,7 @@ this release. Special thanks to Nick Muerdter, who succeeded in porting the
 adapter to work with the JDBC Postgres adapter in JRuby, and also got Travis
 up and running for the project.
 
-* Add JRuby compatibility with the activerecord-jdbcpostgresql-adapter gem.
+* Add JRuby compatibility with the activerecord-jdbcmysql-adapter gem.
   (Pull request by Nick Muerdter)
 * Allow WKT to be to be specified as a string-like object rather than having
   to be a String. (Pull request by Bryan Larsen)

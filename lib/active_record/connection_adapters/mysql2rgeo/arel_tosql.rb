@@ -1,13 +1,13 @@
 module Arel  # :nodoc:
   module Visitors  # :nodoc:
     # Different super-class under JRuby JDBC adapter.
-    # PostGISSuperclass = if defined?(::ArJdbc::PostgreSQL::BindSubstitution)
-    #                       ::ArJdbc::PostgreSQL::BindSubstitution
-    #                     else
-    #                       Mysql2
-    #                     end
+    MySQLSuperclass = if defined?(::ArJdbc::MySQL::BindSubstitution)
+                          ::ArJdbc::MySQL::BindSubstitution
+                        else
+                          MySQL
+                        end
 
-    class Mysql2Rgeo < MySQL  # :nodoc:
+    class Mysql2Rgeo < MySQLSuperclass  # :nodoc:
       include RGeo::ActiveRecord::SpatialToSql
 
       if ::Arel::Visitors.const_defined?(:BindVisitor)

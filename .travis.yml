@@ -16,7 +16,7 @@ addons:
     packages:
       - language-pack-ko
 services:
-  - mysql.server
+  - mysql
 before_install:
   - mysql -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test;'
 script: bundle exec rake test

@@ -18,10 +18,6 @@ require "active_record/connection_adapters/mysql2rgeo/create_connection"
 
 ::ActiveRecord::ConnectionAdapters::Mysql2Rgeo.initial_setup
 
-if defined?(::Rails::Railtie)
-  load ::File.expand_path("mysql2rgeo/railtie.rb", ::File.dirname(__FILE__))
-end
-
 # :startdoc:
 
 module ActiveRecord

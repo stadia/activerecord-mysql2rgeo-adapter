@@ -1,5 +1,4 @@
 adapter: mysql2rgeo
-host: 127.0.0.1
-port: 3306
 database: mysql2rgeo_adapter_test
-setup: default
+username: travis
+encoding: utf8

@@ -14,11 +14,9 @@ matrix:
 addons:
   apt:
     packages:
-      - mysql-server-5.6
-      - mysql-client-5.6
-      - mysql-client-5.6
+      - language-pack-ko
 services:
-  - mysql
+  - mysql.server
 before_install:
   - mysql -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test;'
 script: bundle exec rake test

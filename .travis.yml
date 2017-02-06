@@ -1,3 +1,4 @@
+dist: trusty
 language: ruby
 sudo: false
 rvm:
@@ -14,8 +15,10 @@ addons:
   apt:
     packages:
       - language-pack-ko
-services:
-  - mysql
+      - mysql-server-5.6
+      - mysql-client-core-5.6
+      - mysql-client-5.6
+
 before_install:
-  - mysql -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test;'
-script: bundle exec rake db:migrate test
+  - mysql -u root -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test;'
+script: bundle exec rake test

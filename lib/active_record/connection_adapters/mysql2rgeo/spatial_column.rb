@@ -2,12 +2,6 @@ module ActiveRecord # :nodoc:
   module ConnectionAdapters # :nodoc:
     module Mysql2Rgeo # :nodoc:
       class SpatialColumn < ConnectionAdapters::MySQL::Column # :nodoc:
-        # sql_type examples:
-        #   "Geometry"
-        #   "Geography"
-        # cast_type example classes:
-        #   OID::Spatial
-        #   OID::Integer
         def initialize(name, default, sql_type_metadata = nil, null = true, table_name = nil, default_function = nil, collation = nil, comment: nil)
           @geometric_type = nil
           if sql_type =~ /geometry|point|linestring|polygon/i
@@ -59,6 +53,10 @@ module ActiveRecord # :nodoc:
 
         def spatial?
           !@geometric_type.nil?
+        end
+
+        def multi?
+          /^(geometrycollection|multi)/i.match?(sql_type)
         end
 
         private

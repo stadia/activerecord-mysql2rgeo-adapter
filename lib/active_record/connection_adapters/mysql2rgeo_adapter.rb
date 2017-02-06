@@ -26,22 +26,17 @@ module ActiveRecord
       include Mysql2Rgeo::SchemaStatements
 
       SPATIAL_COLUMN_OPTIONS =
-        {
-          geometry:            {},
-          geometry_collection: {},
-          geometrycollection:  {},
-          line_string:         {},
-          linestring:          {},
-          multi_line_string:   {},
-          multilinestring:     {},
-          multi_point:         {},
-          multipoint:          {},
-          multi_polygon:       {},
-          multipolygon:        {},
-          spatial:             {},
-          point:               {},
-          polygon:             {},
-        }.freeze
+          {
+              geometry: {},
+              geometrycollection: {},
+              linestring: {},
+              spatial: { type: "geometry" }.freeze,
+              point: {},
+              polygon: {},
+              multilinestring: {},
+              multipoint: {},
+              multipolygon: {},
+          }.freeze
 
       # http://postgis.17.x6.nabble.com/Default-SRID-td5001115.html
       DEFAULT_SRID = 0
@@ -79,10 +74,10 @@ module ActiveRecord
               current_index = row[:Key_name]
 
               mysql_index_type = row[:Index_type].downcase.to_sym
-              index_type  = INDEX_TYPES.include?(mysql_index_type)  ? mysql_index_type : nil
+              index_type = INDEX_TYPES.include?(mysql_index_type) ? mysql_index_type : nil
               index_using = INDEX_USINGS.include?(mysql_index_type) ? mysql_index_type : nil
               indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], {}, nil, nil, index_type, index_using, row[:Index_comment].presence)
-              if row[:Index_type] != 'SPATIAL'
+              if mysql_index_type != :spatial
                 indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], [], nil, nil, index_type, index_using, row[:Index_comment].presence)
               else
                 indexes << RGeo::ActiveRecord::SpatialIndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique] == 0, [], [], row[:Index_type] == 'SPATIAL')
@@ -90,7 +85,7 @@ module ActiveRecord
             end
 
             indexes.last.columns << row[:Column_name]
-            indexes.last.lengths << row[:Sub_part] unless indexes.last.try(:spatial)
+            indexes.last.lengths.merge!(row[:Column_name] => row[:Sub_part].to_i) if row[:Sub_part] && mysql_index_type != :spatial
           end
         end
 

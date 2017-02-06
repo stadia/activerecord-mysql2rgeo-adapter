@@ -24,16 +24,15 @@ module ActiveRecord
         def native_database_types
           # Add spatial types
           super.merge(
-              geography: { name: "geography" },
               geometry: { name: "geometry" },
-              geometry_collection: { name: "geometry_collection" },
-              line_string: { name: "line_string" },
-              multi_line_string: { name: "multi_line_string" },
-              multi_point: { name: "multi_point" },
-              multi_polygon: { name: "multi_polygon" },
-              spatial: { name: "geometry", limit: { type: :point } },
               point: { name: "point" },
-              polygon: { name: "polygon" }
+              linestring: { name: "linestring" },
+              polygon: { name: "polygon" },
+              multi_geometry: { name: "geometrycollection" },
+              multi_point: { name: "multipoint" },
+              multi_linestring: { name: "multilinestring" },
+              multi_polygon: { name: "multipolygon" },
+              spatial: { name: "geometry", limit: { type: :point } }
           )
         end
 
@@ -50,10 +49,18 @@ module ActiveRecord
 
         def initialize_type_map(m)
           super
-          register_class_with_limit m, %r(geometry)i, Type::Spatial
-          m.alias_type %r(point)i, 'geometry'
-          m.alias_type %r(linestring)i, 'geometry'
-          m.alias_type %r(polygon)i, 'geometry'
+          %w(
+            geometry
+            point
+            linestring
+            polygon
+            geometrycollection
+            multipoint
+            multilinestring
+            multipolygon
+          ).each do |geo_type|
+            m.register_type(geo_type, Type::Spatial.new(geo_type))
+          end
         end
       end
     end

@@ -4,11 +4,11 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
   def test_spatial_column_options
     [
       :geometry,
-      :geometry_collection,
-      :line_string,
-      :multi_line_string,
-      :multi_point,
-      :multi_polygon,
+      :geometrycollection,
+      :linestring,
+      :multilinestring,
+      :multipoint,
+      :multipolygon,
       :point,
       :polygon,
     ].each do |type|
@@ -268,6 +268,21 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
     klass.reset_column_information
     col = klass.columns.last
     assert_equal 123, col.limit
+  end
+
+  def test_includes_spatial_types
+    klass.connection.create_table("spatial_types", force: true, options: "ENGINE=MyISAM") do |t|
+      t.geometry   :geometry_field
+      t.polygon    :polygon_field, null: false, index: { type: :spatial }
+      t.point      :point_field
+      t.linestring :linestring_field
+
+      t.geometry   :geometry_multi, multi: true
+      t.polygon    :polygon_multi, multi: true
+      t.point      :point_multi, multi: true
+      t.linestring :linestring_multi, multi: true
+    end
+    klass.reset_column_information
   end
 
   private

@@ -1,4 +1,4 @@
 adapter: mysql2rgeo
 database: mysql2rgeo_adapter_test
-username: travis
+username: root
 encoding: utf8

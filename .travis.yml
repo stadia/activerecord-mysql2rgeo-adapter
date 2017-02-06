@@ -18,4 +18,4 @@ services:
   - mysql
 before_install:
   - mysql -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test;'
-script: bundle exec rake test
+script: bundle exec rake db:migrate test

@@ -1,4 +1,5 @@
 adapter: mysql2rgeo
 database: mysql2rgeo_adapter_test
-username: root
+host: 127.0.0.1
+username: travis
 encoding: utf8

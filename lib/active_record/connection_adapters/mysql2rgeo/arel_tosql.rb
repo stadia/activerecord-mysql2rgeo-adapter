@@ -120,4 +120,3 @@ module Arel  # :nodoc:
     end
   end
 end
-# SELECT * FROM spatial_models WHERE (ST_Distance(latlon, ST_GeomFromText('POINT(2 3)')) < 2);

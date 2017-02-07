@@ -1,6 +1,6 @@
 dist: trusty
 language: ruby
-sudo: required
+sudo: false
 rvm:
   - 2.4.0
   - 2.3.3

@@ -60,6 +60,7 @@ module ActiveRecord # :nodoc:
         end
 
         private
+
         def set_geometric_type_from_name(name)
           @geometric_type = RGeo::ActiveRecord.geometric_type_from_name(name) || RGeo::Feature::Geometry
         end

@@ -10,8 +10,8 @@ module ActiveRecord
         def type_to_sql(type, limit = nil, precision = nil, scale = nil, array = nil)
           if (info = spatial_column_constructor(type.to_sym))
             type = limit[:type] || type if limit.is_a?(::Hash)
-            type = 'geometry' if type.to_s == 'spatial'
-            type = type.to_s.gsub('_', '').upcase
+            type = "geometry" if type.to_s == "spatial"
+            type = type.to_s.delete("_").upcase
           end
           super(type, limit, precision, scale, array)
         end
@@ -24,15 +24,15 @@ module ActiveRecord
         def native_database_types
           # Add spatial types
           super.merge(
-              geometry: { name: "geometry" },
-              point: { name: "point" },
-              linestring: { name: "linestring" },
-              polygon: { name: "polygon" },
-              multi_geometry: { name: "geometrycollection" },
-              multi_point: { name: "multipoint" },
-              multi_linestring: { name: "multilinestring" },
-              multi_polygon: { name: "multipolygon" },
-              spatial: { name: "geometry", limit: { type: :point } }
+            geometry: { name: "geometry" },
+            point: { name: "point" },
+            linestring: { name: "linestring" },
+            polygon: { name: "polygon" },
+            multi_geometry: { name: "geometrycollection" },
+            multi_point: { name: "multipoint" },
+            multi_linestring: { name: "multilinestring" },
+            multi_polygon: { name: "multipolygon" },
+            spatial: { name: "geometry", limit: { type: :point } }
           )
         end
 

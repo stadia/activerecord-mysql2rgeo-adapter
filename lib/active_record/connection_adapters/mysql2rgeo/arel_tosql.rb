@@ -31,7 +31,7 @@ module Arel  # :nodoc:
         o.expressions.zip(o.columns).each_with_index { |(value, attr), i|
           case value
             when Nodes::SqlLiteral, Nodes::BindParam
-              if column_for(attr)&.type == :spatial
+              if !column_for(attr).nil? && column_for(attr).type == :spatial
                 collector << 'ST_GeomFromText( ? )'
               else
                 collector = visit value, collector
@@ -91,7 +91,7 @@ module Arel  # :nodoc:
         if right.nil?
           collector << " IS NULL"
         else
-          if o.left.respond_to?(:relation) && column_for(o.left)&.type == :spatial
+          if o.left.respond_to?(:relation) && (!column_for(o.left).nil? && column_for(o.left).type == :spatial)
             collector << " = ST_GeomFromText( ? )"
           else
             collector << " = "

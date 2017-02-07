@@ -1,3 +1,4 @@
+---
 engines:
   rubocop:
     enabled: true
@@ -6,4 +7,9 @@ engines:
     config:
       languages:
       - ruby
-      - javascript
+  fixme:
+    enabled: true
+#  flog:
+#    enabled: true
+#  reek:
+#    enabled: true

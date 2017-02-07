@@ -102,7 +102,8 @@ class BasicTest < ActiveSupport::TestCase  # :nodoc:
 
   def test_readme_example
     spatial_factory_store.register(
-      RGeo::Geographic.spherical_factory, geo_type: "point", sql_type: "geography")
+      RGeo::Geographic.spherical_factory, geo_type: "point", sql_type: "geography"
+    )
 
     klass = SpatialModel
     klass.connection.create_table(:spatial_models, force: true) do |t|

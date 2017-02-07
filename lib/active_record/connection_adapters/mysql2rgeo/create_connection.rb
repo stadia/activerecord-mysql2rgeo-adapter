@@ -13,7 +13,7 @@ module ActiveRecord # :nodoc:
         mysql2_connection(config)
       end
 
-      alias_method :jdbcmysql2rgeo_connection, :mysql2rgeo_connection
+      alias jdbcmysql2rgeo_connection mysql2rgeo_connection
 
     else
 
@@ -24,7 +24,7 @@ module ActiveRecord # :nodoc:
       def mysql2rgeo_connection(config)
         config = config.symbolize_keys
 
-        config[:username] = 'root' if config[:username].nil?
+        config[:username] = "root" if config[:username].nil?
         config[:flags] ||= 0
 
         if Mysql2::Client.const_defined? :FOUND_ROWS

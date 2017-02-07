@@ -1,5 +1,6 @@
+dist: trusty
 language: ruby
-sudo: false
+sudo: required
 rvm:
   - 2.4.0
   - 2.3.3
@@ -11,8 +12,10 @@ matrix:
   allow_failures:
     - rvm: jruby-9.0.5.0
 addons:
-  postgresql: "9.4"
-before_script:
-  - psql -U postgres -c "create database postgis_adapter_test"
-  - psql -U postgres -d postgis_adapter_test -c "create extension postgis"
+  apt:
+    packages:
+      - language-pack-ko
+before_install:
+  - bash .travis.install-mysql-5.7.sh
+  - mysql -u root -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test;'
 script: bundle exec rake test

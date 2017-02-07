@@ -7,41 +7,41 @@ module ActiveRecord
           column(name, options[:limit][:type], options)
         end
 
-        def geography(name, options = {})
-          type = options.dig(:limit, :type)
-          column(name, type.nil? ? :geometry : type, options)
+        def geography(*args, **options)
+          args.each { |name| column(name, :geometry, options) }
         end
 
-        def geometry(name, options = {})
-          column(name, :geometry, options)
+        def geometry(*args, multi: false, **options)
+          multi ? multi_geometry(*args, **options) : args.each { |name| column(name, :geometry, options) }
         end
 
-        def geometry_collection(name, options = {})
-          column(name, :geometry_collection, options)
+        def multi_geometry(*args, **options)
+          args.each { |name| column(name, :geometrycollection, options) }
         end
 
-        def line_string(name, options = {})
-          column(name, :line_string, options)
+        def point(*args, multi: false, **options)
+          multi ? multi_point(*args, **options) : args.each { |name| column(name, :point, options) }
         end
 
-        def multi_line_string(name, options = {})
-          column(name, :multi_line_string, options)
+        def multi_point(*args, **options)
+          args.each { |name| column(name, :multipoint, options) }
         end
 
-        def multi_point(name, options = {})
-          column(name, :multi_point, options)
+        def linestring(*args, multi: false, **options)
+          multi ? multi_linestring(*args, **options) : args.each { |name| column(name, :linestring, options) }
         end
 
-        def multi_polygon(name, options = {})
-          column(name, :multi_polygon, options)
+        def multi_linestring(*args, **options)
+          args.each { |name| column(name, :multilinestring, options) }
         end
 
-        def point(name, options = {})
-          column(name, :point, options)
+        def polygon(*args, multi: false, **options)
+          type = multi ? :multipolygon : :polygon
+          args.each { |name| column(name, type, options) }
         end
 
-        def polygon(name, options = {})
-          column(name, :polygon, options)
+        def multi_polygon(*args, **options)
+          polygon(args, true, options)
         end
       end
 

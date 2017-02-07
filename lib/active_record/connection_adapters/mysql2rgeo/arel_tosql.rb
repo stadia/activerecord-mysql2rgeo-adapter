@@ -1,13 +1,13 @@
 module Arel  # :nodoc:
   module Visitors  # :nodoc:
     # Different super-class under JRuby JDBC adapter.
-    # PostGISSuperclass = if defined?(::ArJdbc::PostgreSQL::BindSubstitution)
-    #                       ::ArJdbc::PostgreSQL::BindSubstitution
-    #                     else
-    #                       Mysql2
-    #                     end
+    MySQLSuperclass = if defined?(::ArJdbc::MySQL::BindSubstitution)
+                          ::ArJdbc::MySQL::BindSubstitution
+                        else
+                          MySQL
+                        end
 
-    class Mysql2Rgeo < MySQL  # :nodoc:
+    class Mysql2Rgeo < MySQLSuperclass  # :nodoc:
       include RGeo::ActiveRecord::SpatialToSql
 
       if ::Arel::Visitors.const_defined?(:BindVisitor)
@@ -31,7 +31,7 @@ module Arel  # :nodoc:
         o.expressions.zip(o.columns).each_with_index { |(value, attr), i|
           case value
             when Nodes::SqlLiteral, Nodes::BindParam
-              if column_for(attr)&.type == :spatial
+              if !column_for(attr).nil? && column_for(attr).type == :spatial
                 collector << 'ST_GeomFromText( ? )'
               else
                 collector = visit value, collector
@@ -91,7 +91,7 @@ module Arel  # :nodoc:
         if right.nil?
           collector << " IS NULL"
         else
-          if o.left.respond_to?(:relation) && column_for(o.left)&.type == :spatial
+          if o.left.respond_to?(:relation) && (!column_for(o.left).nil? && column_for(o.left).type == :spatial)
             collector << " = ST_GeomFromText( ? )"
           else
             collector << " = "
@@ -103,7 +103,7 @@ module Arel  # :nodoc:
       def visit_Arel_Attributes_Attribute(o, collector)
         join_name = o.relation.table_alias || o.relation.name
 
-        if column_for(o)&.type == :spatial && !collector.value.include?("WHERE")
+        if (!column_for(o).nil? && column_for(o).type == :spatial) && !collector.value.include?("WHERE")
           collector << "ST_AsText(#{quote_table_name join_name}.#{quote_column_name o.name}) as #{quote_column_name o.name}"
         else
           collector << "#{quote_table_name join_name}.#{quote_column_name o.name}"
@@ -120,4 +120,3 @@ module Arel  # :nodoc:
     end
   end
 end
-# SELECT * FROM spatial_models WHERE (ST_Distance(latlon, ST_GeomFromText('POINT(2 3)')) < 2);

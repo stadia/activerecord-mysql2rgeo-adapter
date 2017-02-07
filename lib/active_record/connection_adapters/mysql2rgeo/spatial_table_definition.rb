@@ -40,21 +40,6 @@ module ActiveRecord  # :nodoc:
       class ColumnDefinition < MySQL::ColumnDefinition
         # needs to accept the spatial type? or figure out from limit ?
 
-        def self.options_to_limit(type, options = {})
-          spatial_type = geo_type(type)
-          spatial_type << ",#{options[:srid] || 4326}"
-          spatial_type
-        end
-
-        # limit is how column options are passed to #type_to_sql
-        # returns: "Point,4326"
-        def limit
-          "".tap do |value|
-            value << self.class.geo_type(spatial_type)
-            value << ",#{srid}"
-          end
-        end
-
         def self.geo_type(type = "GEOMETRY")
           g_type = type.to_s.delete("_").upcase
           return "POINT" if g_type == "POINT"

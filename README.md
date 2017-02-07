@@ -1,13 +1,7 @@
 # Mysql2Rgeo ActiveRecord Adapter
 
-[![Gem Version](https://badge.fury.io/rb/activerecord-mysql2rgeo-adapter.svg)](http://badge.fury.io/rb/activerecord-mysql2rgeo-adapter)
-[![Build Status](https://travis-ci.org/stadia/activerecord-mysql2rgeo-adapter.svg?branch=master)](https://travis-ci.org/stadia/activerecord-mysql2rgeo-adapter)
-[![Code Climate](https://codeclimate.com/github/stadia/activerecord-mysql2rgeo-adapter.png)](https://codeclimate.com/github/stadia/activerecord-mysql2rgeo-adapter)
-
 The activerecord-mysql2rgeo-adapter provides access to features
-of the mysql2rgeo geospatial database from ActiveRecord. It extends
-the standard mysql2 adapter to provide support for the spatial data types
-and features added by the mysql2rgeo extension. It uses the
+of the MySQL geospatial database from ActiveRecord. It uses the
 [RGeo](http://github.com/rgeo/rgeo) library to represent spatial data in Ruby.
 
 ## Overview
@@ -16,7 +10,7 @@ The adapter provides three basic capabilities:
 
 First, it provides *spatial migrations*. It extends the ActiveRecord migration
 syntax to support creating spatially-typed columns and spatial indexes. You
-can control the various mysql2rgeo-provided attributes such as srid, dimension,
+can control the various PostGIS-provided attributes such as srid, dimension,
 and geographic vs geometric math.
 
 Second, it recognizes spatial types and casts them properly to RGeo geometry
@@ -29,7 +23,7 @@ RGeo objects can be embedded in where clauses.
 
 ## Install
 
-The adapter requires PostgreSQL 9.0+.
+The adapter requires Mysql 5.5+.
 
 Gemfile:
 
@@ -41,7 +35,8 @@ Gemfile for JRuby:
 
 ```ruby
 gem 'activerecord-mysql2rgeo-adapter'
-gem 'activerecord-jdbcpostgresql-adapter', '~> 1.3.9'
+gem 'jdbc-mysql', platform: :jruby
+gem 'activerecord-jdbc-adapter', platform: :jruby
 gem 'ffi-geos'
 ```
 
@@ -65,57 +60,17 @@ ActiveRecord 4.2
 Ruby 1.9.3+, JRuby
 ```
 
-#### Version 2.x supports ActiveRecord 4.0.x and 4.1.x
-
-_If you are using version 2.x, you should read [the version 2.x README](https://github.com/stadia/activerecord-mysql2rgeo-adapter/blob/2.0-stable/README.md)_
-
-Requirements:
-
-```
-ActiveRecord 4.0.0 - 4.1.x
-Ruby 1.9.3+, JRuby
-```
-
-#### Version 0.6.x supports ActiveRecord 3.x
-
-_If you are using version 0.6.x, you should read [the version 0.6.x / 2.x README](https://github.com/stadia/activerecord-mysql2rgeo-adapter/blob/2.0-stable/README.md)_
-
-Requirements:
-
-```
-ActiveRecord 3.x only
-Ruby 1.8.7+, JRuby, Rubinius
-```
-
-Gemfile:
-
-```ruby
-gem 'activerecord-mysql2rgeo-adapter', '~> 0.6.6'
-```
-
-Please read [mysql2rgeo 1 Notes](https://github.com/stadia/activerecord-mysql2rgeo-adapter/blob/master/mysql2rgeo_1.md)
-if you would like to use the adapter with an older version of mysql2rgeo.
-
 ##### database.yml
 
 You must modify your `config/database.yml` file to use the mysql2rgeo
 adapter. At minimum, you will need to change the `adapter` field from
-`postgresql` to `mysql2rgeo`. Recommended configuration:
+`mysql2` to `mysql2rgeo`. Recommended configuration:
 
 ```
 development:
   username:           your_username
   adapter:            mysql2rgeo
   host:               localhost
-  schema_search_path: public
-```
-
-If you have installed your mysql2rgeo extension in a schema other than `public`, which
-is the default, add that schema to your `schema_search_path`:
-
-```
-development:
-  schema_search_path: public, mysql2rgeo
 ```
 
 Here are some other options that are supported:
@@ -124,15 +79,10 @@ Here are some other options that are supported:
 development:
   adapter: mysql2rgeo
   encoding: unicode
-  mysql2rgeo_extension: mysql2rgeo      # default is mysql2rgeo
-  mysql2rgeo_schema: public          # default is public
-  schema_search_path: public,mysql2rgeo
   pool: 5
   database: my_app_development    # your database name
   username: my_app_user           # the username your app will use to connect
   password: my_app_password       # the user's password
-  su_username: my_global_user     # a superuser for the database
-  su_password: my_global_pasword  # the superuser's password
 ```
 
 ##### `rgeo` dependency
@@ -148,10 +98,10 @@ to convert a non-spatial database to a spatial database), see the section on
 "Upgrading a Database With Spatial Features" below.
 
 To create a new Rails application using `activerecord-mysql2rgeo-adapter`, start by
-using the postgresql adapter.
+using the mysql2 adapter.
 
 ```sh
-rails new my_app --database=postgresql
+rails new my_app --database=mysql
 ```
 
 Add the adapter gem to the Gemfile:
@@ -166,7 +116,7 @@ Once you have set up your database config, run:
 rake db:create
 ```
 
-to create your development database. The adapter will add the mysql2rgeo extension to your database.
+to create your development database. The adapter will add the PostGIS extension to your database.
 
 Once you have installed the adapter, edit your `config/database.yml` as described above.
 
@@ -181,17 +131,9 @@ your bundle by running `bundle install`.
 Next, modify your `config/database.yml` file to invoke the mysql2rgeo adapter, as
 described above.
 
-Once you have set up your database configs, run:
-
-```sh
-rake db:gis:setup
-```
-
-This rake task adds the mysql2rgeo extension to your existing database.
-
 ### Creating Spatial Tables
 
-To store spatial data, you must create a column with a spatial type. mysql2rgeo
+To store spatial data, you must create a column with a spatial type. PostGIS
 provides a variety of spatial types, including point, linestring, polygon, and
 different kinds of collections. These types are defined in a standard produced
 by the Open Geospatial Consortium. You can specify options indicating the coordinate
@@ -232,7 +174,7 @@ The fifth column, "lonlatheight", is a geographic (longitude/latitude) point
 that also includes a third "z" coordinate that can be used to store height
 information.
 
-The following are the data types understood by mysql2rgeo and exposed by
+The following are the data types understood by PostGIS and exposed by
 activerecord-mysql2rgeo-adapter:
 
 * `:geometry` -- Any geometric type
@@ -246,12 +188,12 @@ activerecord-mysql2rgeo-adapter:
 
 Following are the options understood by the adapter:
 
-* `:geographic` -- If set to true, create a mysql2rgeo geography column for
+* `:geographic` -- If set to true, create a PostGIS geography column for
   longitude/latitude data over a spheroidal domain; otherwise create a
   geometry column in a flat coordinate system. Default is false. Also
   implies :srid set to 4326.
 * `:srid` -- Set a SRID constraint for the column. Default is 4326 for a
-  geography column, or -1 for a geometry column. Note that mysql2rgeo currently
+  geography column, or -1 for a geometry column. Note that PostGIS currently
   (as of version 2.0) requires geography columns to have SRID 4326, so this
   constraint is of limited use for geography columns.
 * `:has_z` -- Specify that objects in this column include a Z coordinate.
@@ -260,24 +202,21 @@ Following are the options understood by the adapter:
   Default is false.
 
 
-To create a mysql2rgeo spatial index, add `using: :gist` to your index:
+To create a PostGIS spatial index, add `using: :gist` to your index:
 
 ```ruby
-add_index :my_table, :lonlat, using: :gist
+add_index :my_table, :lonlat, type: :spatial
 
 # or
 
 change_table :my_table do |t|
-  t.index :lonlat, using: :gist
+  t.index :lonlat, type: :spatial
 end
 ```
 
 ### Point and Polygon Types with ActiveRecord 4.2+
 
-Prior to version 3, the `point` and `polygon` types were supported. In ActiveRecord 4.2, the Postgresql
-adapter added support for the native Postgresql `point` and `polygon` types, which conflict with this
-adapter's types of the same names. The mysql2rgeo point type must be referenced as `point`, and the
-mysql2rgeo polygon type must be referenced as `st_polygon`.
+Prior to version 3, the `point` and `polygon` types were supported.
 
 ### Configuring ActiveRecord
 
@@ -397,38 +336,9 @@ same geometry (like a multipoint with a single element). Equality queries
 aren't generally all that useful in real world applications. Typically, if you
 want to perform a spatial query, you'll look for, say, all the points within a
 given area. For those queries, you'll need to use the standard spatial SQL
-functions provided by mysql2rgeo.
-
-## Background: mysql2rgeo
-
-A spatial database is one that includes a set of data types, functions,
-tables, and other objects related to geospatial data. When these objects are
-present in your database, you can use them to store and query spatial objects
-such as points, lines, and polygons.
-
-mysql2rgeo is an extension for PostgreSQL that provides definitions for the objects
-you need to add to a database to enable geospatial capabilities.
-
-When you create your Rails database as described above in the section on
-installation and configuration, activerecord-mysql2rgeo-adapter automatically
-invokes mysql2rgeo to add the appropriate definitions to your database. You can
-determine whether your database includes the correct definitions by attempting
-to invoke the mysql2rgeo_VERSION function:
-
-    SELECT mysql2rgeo_VERSION(); # succeeds if mysql2rgeo objects are present.
-
-Standard spatial databases also include a table called `spatial_ref_sys`. This
-table includes a set of "spatial reference systems", or coordinate systems---
-for example, WGS84 latitude and longitude, or Mercator Projection. Spatial
-databases also usually include a table called `geometry_columns`, which
-includes information on each database column that includes geometric data. In
-recent versions of mysql2rgeo, `geometry_columns` is actually not a table but a
-view into the system catalogs.
-
+functions provided by PostGIS.
 
 ## Development and Support
-
-RDoc Documentation is available at http://rdoc.info/gems/activerecord-mysql2rgeo-adapter
 
 Contributions are welcome. See CONTRIBUTING.md for instructions.
 
@@ -436,24 +346,8 @@ Report issues at http://github.com/stadia/activerecord-mysql2rgeo-adapter/issues
 
 Support is also available on the rgeo-users google group at http://groups.google.com/group/rgeo-users
 
-## Acknowledgments
-
-[Daniel Azuma](http://www.daniel-azuma.com) authored the mysql2rgeo Adapter and its supporting
-libraries (including RGeo).
-[Tee Parham](https://twitter.com/teeparham) is the current maintainer.
-
-Development is supported by:
-
-* [Pirq](http://pirq.com)
-* [Neighborland](https://neighborland.com)
-
-This adapter implementation owes some debt to the spatial_adapter plugin
-(http://github.com/fragility/spatial_adapter). Although we made some different
-design decisions for this adapter, studying the spatial_adapter source gave us
-a head start on the implementation.
-
 ## License
 
-Copyright Daniel Azuma, Tee Parham
+Copyright Yongdae Hwang
 
 https://github.com/stadia/activerecord-mysql2rgeo-adapter/blob/master/LICENSE.txt

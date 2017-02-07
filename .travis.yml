@@ -15,6 +15,8 @@ addons:
   apt:
     packages:
       - language-pack-ko
+  code_climate:
+    repo_token: 839b9b8aed0dde7b406316ac3cdfcaba6a5a8466c3efe68cc2d21ec597d00ee3
 before_install:
   - bash .travis.install-mysql-5.7.sh
   - mysql -u root -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test;'

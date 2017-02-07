@@ -26,7 +26,7 @@ RGeo objects can be embedded in where clauses.
 
 ## Install
 
-The adapter requires Mysql 5.5+.
+The adapter requires Mysql 5.6+.
 
 Gemfile:
 

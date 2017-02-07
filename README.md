@@ -1,5 +1,8 @@
 # Mysql2Rgeo ActiveRecord Adapter
 
+[![Build Status](https://travis-ci.org/stadia/activerecord-mysql2rgeo-adapter.svg?branch=master)](https://travis-ci.org/stadia/activerecord-mysql2rgeo-adapter)
+[![Code Climate](https://codeclimate.com/github/stadia/activerecord-mysql2rgeo-adapter.png)](https://codeclimate.com/github/stadia/activerecord-mysql2rgeo-adapter)
+
 The activerecord-mysql2rgeo-adapter provides access to features
 of the MySQL geospatial database from ActiveRecord. It uses the
 [RGeo](http://github.com/rgeo/rgeo) library to represent spatial data in Ruby.

@@ -15,7 +15,7 @@ module ActiveRecord
           multi ? multi_geometry(*args, **options) : args.each { |name| column(name, :geometry, options) }
         end
 
-        def multi_geometry(*args, **options)
+        def geometrycollection(*args, **options)
           args.each { |name| column(name, :geometrycollection, options) }
         end
 
@@ -23,7 +23,7 @@ module ActiveRecord
           multi ? multi_point(*args, **options) : args.each { |name| column(name, :point, options) }
         end
 
-        def multi_point(*args, **options)
+        def multipoint(*args, **options)
           args.each { |name| column(name, :multipoint, options) }
         end
 
@@ -31,18 +31,22 @@ module ActiveRecord
           multi ? multi_linestring(*args, **options) : args.each { |name| column(name, :linestring, options) }
         end
 
-        def multi_linestring(*args, **options)
+        def multilinestring(*args, **options)
           args.each { |name| column(name, :multilinestring, options) }
         end
 
         def polygon(*args, multi: false, **options)
-          type = multi ? :multipolygon : :polygon
-          args.each { |name| column(name, type, options) }
+          multi ? multipolygon(*args, **options) : args.each { |name| column(name, :polygon, options) }
         end
 
-        def multi_polygon(*args, **options)
-          polygon(args, true, options)
+        def multipolygon(*args, **options)
+          args.each { |name| column(name, :multipolygon, options) }
         end
+
+        alias :multi_point :multipoint
+        alias :multi_geometry :geometrycollection
+        alias :multi_linestring :multilinestring
+        alias :multi_polygon :multipolygon
       end
 
       MySQL::Table.send(:include, ColumnMethods)

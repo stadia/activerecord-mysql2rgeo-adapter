@@ -53,10 +53,6 @@ module ActiveRecord
         :spatial
       end
 
-      def self.type
-        :spatial
-      end
-
       def spatial?
         type == :spatial
       end

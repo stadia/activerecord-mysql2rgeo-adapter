@@ -110,13 +110,11 @@ Style/ExtraSpacing:
   Exclude:
     - 'lib/active_record/connection_adapters/mysql2rgeo/arel_tosql.rb'
     - 'lib/active_record/connection_adapters/mysql2rgeo/create_connection.rb'
-    - 'lib/active_record/connection_adapters/mysql2rgeo/setup.rb'
     - 'lib/active_record/connection_adapters/mysql2rgeo/spatial_column.rb'
     - 'lib/active_record/connection_adapters/mysql2rgeo/spatial_table_definition.rb'
     - 'test/basic_test.rb'
     - 'test/ddl_test.rb'
     - 'test/nested_class_test.rb'
-    - 'test/setup_test.rb'
     - 'test/spatial_queries_test.rb'
     - 'test/tasks_test.rb'
 

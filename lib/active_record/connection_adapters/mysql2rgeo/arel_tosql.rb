@@ -2,9 +2,9 @@ module Arel  # :nodoc:
   module Visitors  # :nodoc:
     # Different super-class under JRuby JDBC adapter.
     MySQLSuperclass = if defined?(::ArJdbc::MySQL::BindSubstitution)
-                          ::ArJdbc::MySQL::BindSubstitution
-                        else
-                          MySQL
+                        ::ArJdbc::MySQL::BindSubstitution
+                      else
+                        MySQL
                         end
 
     class Mysql2Rgeo < MySQLSuperclass  # :nodoc:
@@ -15,16 +15,16 @@ module Arel  # :nodoc:
       end
 
       FUNC_MAP = {
-        'st_wkttosql' => 'ST_GeomFromText',
-        'st_wkbtosql' => 'ST_GeomFromWKB',
-        'st_length' => 'ST_Length'
+        "st_wkttosql" => "ST_GeomFromText",
+        "st_wkbtosql" => "ST_GeomFromWKB",
+        "st_length" => "ST_Length"
       }.freeze
 
       def st_func(standard_name)
         FUNC_MAP[standard_name.downcase] || standard_name
       end
 
-      def visit_Arel_Nodes_SelectCore o, collector
+      def visit_Arel_Nodes_SelectCore(o, collector)
         len = o.projections.length - 1
         if len == 0
           if !o.projections.first.nil? && o.projections.first.respond_to?(:relation)
@@ -41,11 +41,11 @@ module Arel  # :nodoc:
       def visit_Arel_Attributes_Attribute(o, collector)
         join_name = o.relation.table_alias || o.relation.name
 
-        if (!column_for(o).nil? && column_for(o).type == :spatial) && !collector.value.include?(" WHERE ")
-          collector << "ST_AsText(#{quote_table_name join_name}.#{quote_column_name o.name}) as #{quote_column_name o.name}"
-        else
-          collector << "#{quote_table_name join_name}.#{quote_column_name o.name}"
-        end
+        collector << if (!column_for(o).nil? && column_for(o).type == :spatial) && !collector.value.include?(" WHERE ")
+                       "ST_AsText(#{quote_table_name join_name}.#{quote_column_name o.name}) as #{quote_column_name o.name}"
+                     else
+                       "#{quote_table_name join_name}.#{quote_column_name o.name}"
+                     end
       end
 
       def visit_String(node, collector)

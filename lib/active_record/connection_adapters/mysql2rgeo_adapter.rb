@@ -22,22 +22,22 @@ module ActiveRecord
       include Mysql2Rgeo::SchemaStatements
 
       SPATIAL_COLUMN_OPTIONS =
-          {
-              geometry: {},
-              geometrycollection: {},
-              linestring: {},
-              spatial: { type: "geometry" }.freeze,
-              point: {},
-              polygon: {},
-              multilinestring: {},
-              multipoint: {},
-              multipolygon: {},
-          }.freeze
+        {
+          geometry: {},
+          geometrycollection: {},
+          linestring: {},
+          spatial: { type: "geometry" }.freeze,
+          point: {},
+          polygon: {},
+          multilinestring: {},
+          multipoint: {},
+          multipolygon: {},
+        }.freeze
 
       # http://postgis.17.x6.nabble.com/Default-SRID-td5001115.html
       DEFAULT_SRID = 0
 
-      ADAPTER_NAME = 'Mysql2Rgeo'.freeze
+      ADAPTER_NAME = "Mysql2Rgeo".freeze
 
       def initialize(connection, logger, connection_options, config)
         super
@@ -54,23 +54,23 @@ module ActiveRecord
         DEFAULT_SRID
       end
 
-      def indexes(table_name, name = nil) #:nodoc:
+      # Returns an array of indexes for the given table.
+      def indexes(table_name, _name = nil) #:nodoc:
         indexes = []
         current_index = nil
-        execute_and_free("SHOW KEYS FROM #{quote_table_name(table_name)}", 'SCHEMA') do |result|
+        execute_and_free("SHOW KEYS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
           each_hash(result) do |row|
             if current_index != row[:Key_name]
-              next if row[:Key_name] == 'PRIMARY' # skip the primary key
+              next if row[:Key_name] == "PRIMARY" # skip the primary key
               current_index = row[:Key_name]
 
               mysql_index_type = row[:Index_type].downcase.to_sym
               index_type = INDEX_TYPES.include?(mysql_index_type) ? mysql_index_type : nil
               index_using = INDEX_USINGS.include?(mysql_index_type) ? mysql_index_type : nil
-              indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], {}, nil, nil, index_type, index_using, row[:Index_comment].presence)
               if mysql_index_type != :spatial
                 indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], [], nil, nil, index_type, index_using, row[:Index_comment].presence)
               else
-                indexes << RGeo::ActiveRecord::SpatialIndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique] == 0, [], [], row[:Index_type] == 'SPATIAL')
+                indexes << RGeo::ActiveRecord::SpatialIndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique] == 0, [], [], row[:Index_type] == "SPATIAL")
               end
             end
 

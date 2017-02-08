@@ -116,7 +116,6 @@ class BasicTest < ActiveSupport::TestCase  # :nodoc:
     klass.connection.change_table(:spatial_models) do |t|
       t.index(:latlon, type: :spatial)
     end
-
     object = klass.new
     object.latlon = "POINT(-122 47)"
     point = object.latlon

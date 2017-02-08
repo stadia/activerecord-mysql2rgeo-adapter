@@ -20,4 +20,5 @@ addons:
 before_install:
   - bash .travis.install-mysql-5.7.sh
   - mysql -u root -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test;'
+  - mysql -u root -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_tasks_test;'
 script: bundle exec rake test

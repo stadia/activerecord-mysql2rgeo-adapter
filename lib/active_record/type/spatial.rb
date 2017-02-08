@@ -75,7 +75,7 @@ module ActiveRecord
         return if value.nil?
         geo_value = cast_value(value)
         geo_value
-        # TODO - only valid types should be allowed
+        # TODO: - only valid types should be allowed
         # e.g. linestring is not valid for point column
         # raise "maybe should raise" unless RGeo::Feature::Geometry.check_type(geo_value)
         # RGeo::WKRep::WKBGenerator.new(hex_format: true, type_format: :ewkb, emit_ewkb_srid: true).generate(geo_value)

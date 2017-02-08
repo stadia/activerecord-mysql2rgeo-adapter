@@ -6,6 +6,9 @@
 # Note that changes in the inspected code, or installation of new
 # versions of RuboCop, may require this file to be generated again.
 
+Bundler/OrderedGems:
+  Enabled: false
+
 # Offense count: 3
 Lint/HandleExceptions:
   Exclude:
@@ -88,7 +91,6 @@ Style/ConstantName:
 # Configuration parameters: Exclude.
 Style/Documentation:
   Exclude:
-    - 'spec/**/*'
     - 'test/**/*'
     - 'lib/active_record/connection_adapters/mysql2rgeo/column_methods.rb'
     - 'lib/active_record/type/spatial.rb'
@@ -149,6 +151,9 @@ Style/IfUnlessModifier:
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/MethodName:
   Enabled: false
+
+Style/NumericPredicate:
+  EnforcedStyle: comparison
 
 # Offense count: 1
 # Cop supports --auto-correct.

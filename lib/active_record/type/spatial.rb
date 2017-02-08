@@ -46,7 +46,7 @@ module ActiveRecord
       end
 
       def klass
-        type == :spatial ? ::RGeo::Feature::Geometry : super
+        type == :spatial ? RGeo::Feature::Geometry : super
       end
 
       def type

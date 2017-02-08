@@ -1,4 +1,4 @@
-# The activerecord-mysql2rgeo-adapter gem installs the *postgis*
+# The activerecord-mysql2rgeo-adapter gem installs the *mysql2rgeo*
 # connection adapter into ActiveRecord.
 
 # :stopdoc:
@@ -10,13 +10,9 @@ require "active_record/connection_adapters/mysql2rgeo/column_methods"
 require "active_record/connection_adapters/mysql2rgeo/schema_statements"
 require "active_record/connection_adapters/mysql2rgeo/spatial_table_definition"
 require "active_record/connection_adapters/mysql2rgeo/spatial_column"
-require "arel/visitors/bind_visitor"
 require "active_record/connection_adapters/mysql2rgeo/arel_tosql"
-require "active_record/connection_adapters/mysql2rgeo/setup"
 require "active_record/type/spatial"
 require "active_record/connection_adapters/mysql2rgeo/create_connection"
-
-::ActiveRecord::ConnectionAdapters::Mysql2Rgeo.initial_setup
 
 # :startdoc:
 
@@ -47,13 +43,7 @@ module ActiveRecord
         super
 
         @visitor = Arel::Visitors::Mysql2Rgeo.new(self)
-
-        if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
-          @prepared_statements = true
-          @visitor.extend(DetermineIfPreparableVisitor)
-        else
-          @prepared_statements = false
-        end
+        @visitor.extend(DetermineIfPreparableVisitor) if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
       end
 
       def self.spatial_column_options(key)
@@ -94,7 +84,7 @@ module ActiveRecord
 
       def quote(value, column = nil)
         if RGeo::Feature::Geometry.check_type(value)
-          "ST_GeomFromWKB(0x#{::RGeo::WKRep::WKBGenerator.new(:hex_format => true).generate(value)},#{value.srid})"
+          "ST_GeomFromWKB(0x#{RGeo::WKRep::WKBGenerator.new(hex_format: true, little_endian: true).generate(value)},#{value.srid})"
         else
           super
         end

@@ -7,10 +7,6 @@ module ActiveRecord
           column(name, options[:limit][:type], options)
         end
 
-        def geography(*args, **options)
-          args.each { |name| column(name, :geometry, options) }
-        end
-
         def geometry(*args, multi: false, **options)
           multi ? multi_geometry(*args, **options) : args.each { |name| column(name, :geometry, options) }
         end

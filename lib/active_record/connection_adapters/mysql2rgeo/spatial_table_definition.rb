@@ -67,6 +67,9 @@ module ActiveRecord  # :nodoc:
           @srid = value
         end
       end
+
+      class SpatialIndexDefinition < Struct.new(*IndexDefinition.members, :spatial)
+      end
     end
   end
 end

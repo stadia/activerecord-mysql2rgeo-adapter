@@ -3,7 +3,7 @@ module ActiveRecord
     module Mysql2Rgeo
       module ColumnMethods
         def spatial(name, options = {})
-          raise "You must set a type. For example: 't.spatial limit: { type: 'point' }'" if options[:limit].blank? || options[:limit][:type].blank?
+          raise "You must set a type. For example: 't.spatial :object1, limit: { type: 'point' }'" if options[:limit].blank? || options[:limit][:type].blank?
           column(name, options[:limit][:type], options)
         end
 

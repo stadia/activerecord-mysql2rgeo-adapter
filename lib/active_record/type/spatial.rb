@@ -7,7 +7,7 @@ module ActiveRecord
       #   "geography"
       #   "geometry NOT NULL"
       #   "geometry"
-      def initialize(sql_type = 'geometry')
+      def initialize(sql_type = "geometry")
         @sql_type = sql_type
         @geo_type, @srid = self.class.parse_sql_type(sql_type)
       end
@@ -27,8 +27,8 @@ module ActiveRecord
           params = Regexp.last_match(1).split(",")
           if params.size > 1
             if params.first =~ /([a-z]+[^zm])(z?)(m?)/i
-              has_z = Regexp.last_match(2).length > 0
-              has_m = Regexp.last_match(3).length > 0
+              has_z = !Regexp.last_match(2).empty?
+              has_m = !Regexp.last_match(3).empty?
               geo_type = Regexp.last_match(1)
             end
             if params.last =~ /(\d+)/
@@ -46,7 +46,7 @@ module ActiveRecord
       end
 
       def klass
-        type == :spatial ? ::RGeo::Feature::Geometry : super
+        type == :spatial ? RGeo::Feature::Geometry : super
       end
 
       def type
@@ -63,19 +63,19 @@ module ActiveRecord
 
       def spatial_factory
         @spatial_factory ||=
-            RGeo::ActiveRecord::SpatialFactoryStore.instance.factory(
-                geo_type: @geo_type,
-                sql_type: @sql_type,
-                srid: @srid
-            )
+          RGeo::ActiveRecord::SpatialFactoryStore.instance.factory(
+            geo_type: @geo_type,
+            sql_type: @sql_type,
+            srid: @srid
+          )
       end
 
       # support setting an RGeo object or a WKT string
       def serialize(value)
         return if value.nil?
         geo_value = cast_value(value)
-        return geo_value
-        # TODO - only valid types should be allowed
+        geo_value
+        # TODO: - only valid types should be allowed
         # e.g. linestring is not valid for point column
         # raise "maybe should raise" unless RGeo::Feature::Geometry.check_type(geo_value)
         # RGeo::WKRep::WKBGenerator.new(hex_format: true, type_format: :ewkb, emit_ewkb_srid: true).generate(geo_value)
@@ -88,7 +88,7 @@ module ActiveRecord
       # values except +nil+.
       def cast_value(value) # :doc:
         return if value.nil?
-        value.class === 'String' ? parse_wkt(value) : parse_wkt(value.to_s)
+        value.class === "String" ? parse_wkt(value) : parse_wkt(value.to_s)
       end
 
       # convert WKT string into RGeo object

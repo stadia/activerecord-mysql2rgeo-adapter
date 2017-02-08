@@ -17,7 +17,7 @@ module ActiveRecord
         end
 
         def spatial_column_constructor(name)
-          ::RGeo::ActiveRecord::DEFAULT_SPATIAL_COLUMN_CONSTRUCTORS[name]
+          RGeo::ActiveRecord::DEFAULT_SPATIAL_COLUMN_CONSTRUCTORS[name]
         end
 
         # override

@@ -19,6 +19,10 @@ class ActiveSupport::TestCase
     establish_connection YAML.load_file(DATABASE_CONFIG_PATH)
   end
 
+  class SpatialMultiModel < ActiveRecord::Base
+    establish_connection YAML.load_file(DATABASE_CONFIG_PATH)
+  end
+
   def factory
     RGeo::Cartesian.preferred_factory(srid: 3785)
   end

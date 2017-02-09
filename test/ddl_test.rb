@@ -249,12 +249,12 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
     klass.reset_column_information
     assert_equal :integer, klass.columns[-3].type
     assert_equal :string, klass.columns[-2].type
-    assert_equal :spatial, klass.columns[-1].type
+    assert_equal :geometry, klass.columns[-1].type
   end
 
   def test_reload_dumped_schema
     klass.connection.create_table(:spatial_models, force: true) do |t|
-      t.geography "latlon1", limit: { srid: 4326, type: "point", geographic: true }
+      t.geometry "latlon1", limit: { srid: 4326, type: "point", geographic: true }
     end
     klass.reset_column_information
     col = klass.columns.last

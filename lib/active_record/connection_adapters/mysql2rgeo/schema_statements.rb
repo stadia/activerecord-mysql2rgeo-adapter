@@ -41,12 +41,6 @@ module ActiveRecord
           Mysql2Rgeo::TableDefinition.new(*args)
         end
 
-        def type_cast(value, column = nil)
-          super
-        rescue TypeError
-          value.to_s
-        end
-
         def initialize_type_map(m)
           super
           %w(

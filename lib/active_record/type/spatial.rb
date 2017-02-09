@@ -46,19 +46,15 @@ module ActiveRecord
       end
 
       def klass
-        type == :spatial ? RGeo::Feature::Geometry : super
+        type == :geometry ? RGeo::Feature::Geometry : super
       end
 
       def type
-        :spatial
-      end
-
-      def self.type
-        :spatial
+        :geometry
       end
 
       def spatial?
-        type == :spatial
+        true
       end
 
       def spatial_factory

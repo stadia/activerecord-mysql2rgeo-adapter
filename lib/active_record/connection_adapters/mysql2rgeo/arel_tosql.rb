@@ -41,7 +41,7 @@ module Arel  # :nodoc:
       def visit_Arel_Attributes_Attribute(o, collector)
         join_name = o.relation.table_alias || o.relation.name
 
-        collector << if (!column_for(o).nil? && column_for(o).type == :spatial) && !collector.value.include?(" WHERE ")
+        collector << if (!column_for(o).nil? && column_for(o).type == :geometry) && !collector.value.include?(" WHERE ")
                        "ST_AsText(#{quote_table_name join_name}.#{quote_column_name o.name}) as #{quote_column_name o.name}"
                      else
                        "#{quote_table_name join_name}.#{quote_column_name o.name}"

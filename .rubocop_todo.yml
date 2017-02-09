@@ -12,7 +12,9 @@ Bundler/OrderedGems:
 # Offense count: 3
 Lint/HandleExceptions:
   Exclude:
+    - 'test/tasks_test.rb'
     - 'test/test_helper.rb'
+    - 'test/spatial_types_test.rb'
 
 # Offense count: 1
 # Cop supports --auto-correct.
@@ -166,6 +168,7 @@ Style/ParallelAssignment:
 Style/PredicateName:
   Exclude:
     - 'lib/active_record/connection_adapters/mysql2rgeo/spatial_table_definition.rb'
+    - 'lib/active_record/connection_adapters/mysql2rgeo/spatial_column.rb'
 
 # Offense count: 5
 # Cop supports --auto-correct.

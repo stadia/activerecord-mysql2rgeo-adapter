@@ -68,8 +68,7 @@ module ActiveRecord  # :nodoc:
         end
       end
 
-      class SpatialIndexDefinition < Struct.new(*IndexDefinition.members, :spatial)
-      end
+      SpatialIndexDefinition = Struct.new(*IndexDefinition.members, :spatial)
     end
   end
 end

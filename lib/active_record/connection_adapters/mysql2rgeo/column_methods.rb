@@ -39,10 +39,10 @@ module ActiveRecord
           args.each { |name| column(name, :multipolygon, options) }
         end
 
-        alias :multi_point :multipoint
-        alias :multi_geometry :geometrycollection
-        alias :multi_linestring :multilinestring
-        alias :multi_polygon :multipolygon
+        alias multi_point multipoint
+        alias multi_geometry geometrycollection
+        alias multi_linestring multilinestring
+        alias multi_polygon multipolygon
       end
 
       MySQL::Table.send(:include, ColumnMethods)

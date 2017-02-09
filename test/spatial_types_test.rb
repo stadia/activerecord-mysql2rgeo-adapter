@@ -1,13 +1,13 @@
 require "test_helper"
 require "active_record/schema_dumper"
 
-class Mysql2SpatialTypesTest < ActiveSupport::TestCase  # :nodoc:
+class Mysql2SpatialTypesTest < ActiveSupport::TestCase # :nodoc:
   NEW_CONNECTION = {
-      "adapter"            => "mysql2rgeo",
-      "host"               => "127.0.0.1",
-      "database"           => "mysql2rgeo_tasks_test",
-      "username"           => "root"
-  }
+    "adapter" => "mysql2rgeo",
+    "host"               => "127.0.0.1",
+    "database"           => "mysql2rgeo_tasks_test",
+    "username"           => "root"
+  }.freeze
 
   def setup
     setup_database_tasks
@@ -32,7 +32,7 @@ class Mysql2SpatialTypesTest < ActiveSupport::TestCase  # :nodoc:
     File.open(tmp_sql_filename, "w:utf-8") do |file|
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
-    schema = File.read(tmp_sql_filename)
+    # schema = File.read(tmp_sql_filename)
 
     # assert_match %r{t.geometry\s+"geometry_field"$}, schema
     # assert_match %r{t.polygon\s+"polygon_field",\s+null: false$}, schema

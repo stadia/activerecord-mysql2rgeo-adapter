@@ -3,12 +3,12 @@ require "active_record/schema_dumper"
 
 class TasksTest < ActiveSupport::TestCase  # :nodoc:
   NEW_CONNECTION = {
-      "adapter"            => "mysql2rgeo",
-      "host"               => "127.0.0.1",
-      "database"           => "mysql2rgeo_tasks_test",
-      "username"           => "root",
-      "password"           => ""
-  }
+    "adapter" => "mysql2rgeo",
+    "host"               => "127.0.0.1",
+    "database"           => "mysql2rgeo_tasks_test",
+    "username"           => "root",
+    "password"           => ""
+  }.freeze
 
   def test_empty_sql_dump
     setup_database_tasks

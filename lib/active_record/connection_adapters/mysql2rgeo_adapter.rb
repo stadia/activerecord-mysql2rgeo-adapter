@@ -22,17 +22,17 @@ module ActiveRecord
       include Mysql2Rgeo::SchemaStatements
 
       SPATIAL_COLUMN_OPTIONS =
-          {
-              geometry: {},
-              geometrycollection: {},
-              linestring: {},
-              spatial: { type: "geometry" }.freeze,
-              point: {},
-              polygon: {},
-              multilinestring: {},
-              multipoint: {},
-              multipolygon: {},
-          }.freeze
+        {
+          geometry: {},
+          geometrycollection: {},
+          linestring: {},
+          spatial: { type: "geometry" }.freeze,
+          point: {},
+          polygon: {},
+          multilinestring: {},
+          multipoint: {},
+          multipolygon: {},
+        }.freeze
 
       # http://postgis.17.x6.nabble.com/Default-SRID-td5001115.html
       DEFAULT_SRID = 0

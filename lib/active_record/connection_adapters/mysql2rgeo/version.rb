@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module Mysql2Rgeo
-      VERSION = "4.0.2".freeze
+      VERSION = "1.0.0".freeze
     end
   end
 end

@@ -150,9 +150,9 @@ columns in a table:
 create_table :my_spatial_table do |t|
   t.column :shape1, :geometry
   t.geometry :shape2
-  t.line_string :path, srid: 3785
-  t.point :lonlat, geographic: true
-  t.point :lonlatheight, geographic: true, has_z: true
+  t.line_string :path
+  t.point :lonlat
+  t.point :lonlatheight
 end
 ```
 
@@ -183,29 +183,13 @@ activerecord-mysql2rgeo-adapter:
 * `:geometry` -- Any geometric type
 * `:point` -- Point data
 * `:line_string` -- LineString data
-* `:st_polygon` -- Polygon data
+* `:polygon` -- Polygon data
 * `:geometry_collection` -- Any collection type
 * `:multi_point` -- A collection of Points
 * `:multi_line_string` -- A collection of LineStrings
 * `:multi_polygon` -- A collection of Polygons
 
-Following are the options understood by the adapter:
-
-* `:geographic` -- If set to true, create a PostGIS geography column for
-  longitude/latitude data over a spheroidal domain; otherwise create a
-  geometry column in a flat coordinate system. Default is false. Also
-  implies :srid set to 4326.
-* `:srid` -- Set a SRID constraint for the column. Default is 4326 for a
-  geography column, or -1 for a geometry column. Note that PostGIS currently
-  (as of version 2.0) requires geography columns to have SRID 4326, so this
-  constraint is of limited use for geography columns.
-* `:has_z` -- Specify that objects in this column include a Z coordinate.
-  Default is false.
-* `:has_m` -- Specify that objects in this column include an M coordinate.
-  Default is false.
-
-
-To create a PostGIS spatial index, add `using: :gist` to your index:
+To create a spatial index, add `type: :spatial` to your index:
 
 ```ruby
 add_index :my_table, :lonlat, type: :spatial

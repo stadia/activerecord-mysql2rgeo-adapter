@@ -67,7 +67,7 @@ module ActiveRecord
               mysql_index_type = row[:Index_type].downcase.to_sym
               index_type = INDEX_TYPES.include?(mysql_index_type) ? mysql_index_type : nil
               index_using = INDEX_USINGS.include?(mysql_index_type) ? mysql_index_type : nil
-              options = [row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], [], nil, nil, index_type, index_using, row[:Index_comment].presence]
+              options = [row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], {}, nil, nil, index_type, index_using, row[:Index_comment].presence]
               indexes << if mysql_index_type == :spatial
                            options.push(true)
                            Mysql2Rgeo::SpatialIndexDefinition.new(*options)

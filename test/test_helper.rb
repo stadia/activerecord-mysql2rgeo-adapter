@@ -24,7 +24,7 @@ class ActiveSupport::TestCase
   end
 
   def factory
-    RGeo::Cartesian.preferred_factory(srid: 3785)
+    RGeo::Cartesian.preferred_factory(srid: 0)
   end
 
   def geographic_factory

@@ -29,8 +29,8 @@ module Arel  # :nodoc:
         if len == 0
           if !o.projections.first.nil? && o.projections.first.respond_to?(:relation)
             projections = []
-            column_cache(o.projections.first.relation.name).keys.each do |x|
-              projections << o.projections.first.relation[x.to_sym]
+            @connection.columns(o.projections.first.relation.name).each do |x|
+              projections << o.projections.first.relation[x.name.to_sym]
             end
             o.projections = projections
           end

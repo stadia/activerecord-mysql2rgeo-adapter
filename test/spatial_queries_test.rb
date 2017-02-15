@@ -47,10 +47,10 @@ class SpatialQueriesTest < ActiveSupport::TestCase  # :nodoc:
     obj.latlon = factory.point(1.0, 2.0)
     obj.save!
     id = obj.id
-    obj2 = SpatialModel.where(SpatialModel.arel_table[:latlon].st_distance_sphere("POINT(2 3)").lt(157178)).first
+    obj2 = SpatialModel.where(SpatialModel.arel_table[:latlon].st_distance_sphere("POINT(2 3)").lt(157_178)).first
     refute_nil(obj2)
     assert_equal(id, obj2.id)
-    obj3 = SpatialModel.where(SpatialModel.arel_table[:latlon].st_distance_sphere("POINT(2 3)").gt(157178)).first
+    obj3 = SpatialModel.where(SpatialModel.arel_table[:latlon].st_distance_sphere("POINT(2 3)").gt(157_178)).first
     assert_nil(obj3)
   end
 
@@ -73,10 +73,10 @@ class SpatialQueriesTest < ActiveSupport::TestCase  # :nodoc:
     obj.latlon = factory.point(1.0, 2.0)
     obj.save!
     id = obj.id
-    obj2 = SpatialModel.where(::Arel.spatial("POINT(2 3)").st_distance_sphere(SpatialModel.arel_table[:latlon]).lt(157178)).first
+    obj2 = SpatialModel.where(::Arel.spatial("POINT(2 3)").st_distance_sphere(SpatialModel.arel_table[:latlon]).lt(157_178)).first
     refute_nil(obj2)
     assert_equal(id, obj2.id)
-    obj3 = SpatialModel.where(::Arel.spatial("POINT(2 3)").st_distance_sphere(SpatialModel.arel_table[:latlon]).gt(157178)).first
+    obj3 = SpatialModel.where(::Arel.spatial("POINT(2 3)").st_distance_sphere(SpatialModel.arel_table[:latlon]).gt(157_178)).first
     assert_nil(obj3)
   end
 

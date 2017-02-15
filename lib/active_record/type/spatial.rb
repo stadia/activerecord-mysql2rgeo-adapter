@@ -59,11 +59,11 @@ module ActiveRecord
 
       def spatial_factory
         @spatial_factory ||=
-            RGeo::ActiveRecord::SpatialFactoryStore.instance.factory(
-                geo_type: @geo_type,
-                sql_type: @sql_type,
-                srid: @srid
-            )
+          RGeo::ActiveRecord::SpatialFactoryStore.instance.factory(
+            geo_type: @geo_type,
+            sql_type: @sql_type,
+            srid: @srid
+          )
       end
 
       # support setting an RGeo object or a WKT string
@@ -82,24 +82,34 @@ module ActiveRecord
       def cast_value(value)
         return if value.nil?
         case value
-          when ::RGeo::Feature::Geometry
-            value
-            # RGeo::Feature.cast(value, spatial_factory) rescue nil
-          when ::String
-            marker = value[4, 1]
-            if marker == "\x00" || marker == "\x01"
-              srid = value[0, 4].unpack(marker == "\x01" ? 'V' : 'N').first
-              RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: srid).parse(value[4..-1]) rescue nil
-            elsif value[0, 10] =~ /[0-9a-fA-F]{8}0[01]/
-              srid = value[0, 8].to_i(16)
-              srid = [srid].pack('V').unpack('N').first if value[9, 1] == '1'
-              RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: srid).parse(value[8..-1]) rescue nil
-            else
-              RGeo::WKRep::WKTParser.new(spatial_factory, support_ewkt: true, default_srid: @srid).parse(value) rescue nil
+        when ::RGeo::Feature::Geometry
+          value
+        # RGeo::Feature.cast(value, spatial_factory) rescue nil
+        when ::String
+          marker = value[4, 1]
+          if marker == "\x00" || marker == "\x01"
+            srid = value[0, 4].unpack(marker == "\x01" ? "V" : "N").first
+            begin
+              RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: srid).parse(value[4..-1])
+            rescue
+              nil
+            end
+          elsif value[0, 10] =~ /[0-9a-fA-F]{8}0[01]/
+            srid = value[0, 8].to_i(16)
+            srid = [srid].pack("V").unpack("N").first if value[9, 1] == "1"
+            begin
+              RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: srid).parse(value[8..-1])
+            rescue
+              nil
             end
           else
-            nil
-        end
+            begin
+              RGeo::WKRep::WKTParser.new(spatial_factory, support_ewkt: true, default_srid: @srid).parse(value)
+            rescue
+              nil
+            end
+          end
+          end
       end
     end
   end

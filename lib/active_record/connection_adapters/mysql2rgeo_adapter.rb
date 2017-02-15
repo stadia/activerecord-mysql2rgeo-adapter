@@ -57,7 +57,7 @@ module ActiveRecord
       end
 
       def supports_spatial?
-        !mariadb? && version >= '5.7.6'
+        !mariadb? && version >= "5.7.6"
       end
 
       # Returns an array of indexes for the given table.

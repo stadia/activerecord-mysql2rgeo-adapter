@@ -1,5 +1,6 @@
 # Mysql2Rgeo ActiveRecord Adapter
 
+[![Gem Version](https://badge.fury.io/rb/activerecord-mysql2rgeo-adapter.svg)](https://badge.fury.io/rb/activerecord-mysql2rgeo-adapter)
 [![Build Status](https://travis-ci.org/stadia/activerecord-mysql2rgeo-adapter.svg?branch=master)](https://travis-ci.org/stadia/activerecord-mysql2rgeo-adapter)
 [![Code Climate](https://codeclimate.com/github/stadia/activerecord-mysql2rgeo-adapter.png)](https://codeclimate.com/github/stadia/activerecord-mysql2rgeo-adapter)
 

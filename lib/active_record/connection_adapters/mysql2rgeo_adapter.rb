@@ -10,6 +10,7 @@ require "active_record/connection_adapters/mysql2rgeo/column_methods"
 require "active_record/connection_adapters/mysql2rgeo/schema_statements"
 require "active_record/connection_adapters/mysql2rgeo/spatial_table_definition"
 require "active_record/connection_adapters/mysql2rgeo/spatial_column"
+require "active_record/connection_adapters/mysql2rgeo/spatial_expressions"
 require "arel/visitors/bind_visitor"
 require "active_record/connection_adapters/mysql2rgeo/arel_tosql"
 require "active_record/type/spatial"
@@ -53,6 +54,10 @@ module ActiveRecord
 
       def default_srid
         DEFAULT_SRID
+      end
+
+      def supports_spatial?
+        !mariadb? && version >= '5.7.6'
       end
 
       # Returns an array of indexes for the given table.

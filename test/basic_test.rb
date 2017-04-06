@@ -5,7 +5,7 @@ class BasicTest < ActiveSupport::TestCase  # :nodoc:
     refute_nil ActiveRecord::ConnectionAdapters::Mysql2Rgeo::VERSION
   end
 
-  def test_postgis_available
+  def test_mysql2rgeo_available
     assert_equal "Mysql2Rgeo", SpatialModel.connection.adapter_name
   end
 

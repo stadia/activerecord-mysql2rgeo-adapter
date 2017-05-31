@@ -28,13 +28,13 @@ module ActiveRecord
           geometry: {},
           geometrycollection: {},
           linestring: {},
-          spatial: { type: "geometry" }.freeze,
-          point: {},
-          polygon: {},
           multilinestring: {},
           multipoint: {},
           multipolygon: {},
-        }.freeze
+          spatial: { type: "geometry" },
+          point: {},
+          polygon: {}
+        }
 
       # http://postgis.17.x6.nabble.com/Default-SRID-td5001115.html
       DEFAULT_SRID = 0
@@ -61,7 +61,13 @@ module ActiveRecord
       end
 
       # Returns an array of indexes for the given table.
-      def indexes(table_name, _name = nil) #:nodoc:
+      def indexes(table_name, name = nil) #:nodoc:
+        if name
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing name to #indexes is deprecated without replacement.
+          MSG
+        end
+
         indexes = []
         current_index = nil
         execute_and_free("SHOW KEYS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
@@ -78,7 +84,7 @@ module ActiveRecord
                            options.push(true)
                            Mysql2Rgeo::SpatialIndexDefinition.new(*options)
                          else
-                           IndexDefinition.new(*options)
+                           IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], {}, nil, nil, index_type, index_using, row[:Index_comment].presence)
                          end
             end
 
@@ -90,7 +96,7 @@ module ActiveRecord
         indexes
       end
 
-      def quote(value, column = nil)
+      def quote(value)
         if RGeo::Feature::Geometry.check_type(value)
           "ST_GeomFromWKB(0x#{RGeo::WKRep::WKBGenerator.new(hex_format: true, little_endian: true).generate(value)},#{value.srid})"
         else

@@ -7,13 +7,13 @@ module ActiveRecord
           SpatialColumn.new(*args)
         end
 
-        def type_to_sql(type, limit = nil, precision = nil, scale = nil, array = nil)
+        def type_to_sql(type, limit: nil, precision: nil, scale: nil, unsigned: nil, **) # :nodoc:
           if (info = spatial_column_constructor(type.to_sym))
             type = limit[:type] || type if limit.is_a?(::Hash)
-            type = "geometry" if type.to_s == "spatial"
+            type = 'geometry' if type.to_s.eql? 'spatial'
             type = type.to_s.delete("_").upcase
           end
-          super(type, limit, precision, scale, array)
+          super
         end
 
         def spatial_column_constructor(name)

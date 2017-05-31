@@ -3,7 +3,7 @@ require "active_record/schema_dumper"
 
 class TasksTest < ActiveSupport::TestCase  # :nodoc:
   NEW_CONNECTION = {
-    "adapter" => "mysql2rgeo",
+    "adapter"            => "mysql2rgeo",
     "host"               => "127.0.0.1",
     "database"           => "mysql2rgeo_tasks_test",
     "username"           => "root",
@@ -79,7 +79,6 @@ class TasksTest < ActiveSupport::TestCase  # :nodoc:
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
-
     assert data.index(%(t.geometry "latlon1", limit: {:type=>"point", :srid=>0}))
     assert data.index(%(t.geometry "latlon2", limit: {:type=>"point", :srid=>0}))
   end
@@ -94,7 +93,6 @@ class TasksTest < ActiveSupport::TestCase  # :nodoc:
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
-
     assert data.index(%(t.geometry "latlon", limit: {:type=>"point", :srid=>0}, null: false))
     assert data.index(%(t.index ["latlon"], name: "index_spatial_test_on_latlon", type: :spatial))
   end

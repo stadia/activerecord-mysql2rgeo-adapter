@@ -18,7 +18,7 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
 
   def test_type_to_sql
     adapter = SpatialModel.connection
-    assert_equal "GEOMETRY", adapter.type_to_sql(:geometry, "point,4326")
+    assert_equal "GEOMETRY", adapter.type_to_sql(:geometry, limit: "point,4326")
   end
 
   def test_create_simple_geometry
@@ -268,21 +268,6 @@ class DDLTest < ActiveSupport::TestCase  # :nodoc:
     klass.reset_column_information
     col = klass.columns.last
     assert_equal 123, col.limit
-  end
-
-  def test_includes_spatial_types
-    klass.connection.create_table("spatial_types", force: true, options: "ENGINE=MyISAM") do |t|
-      t.geometry   :geometry_field
-      t.polygon    :polygon_field, null: false, index: { type: :spatial }
-      t.point      :point_field
-      t.linestring :linestring_field
-
-      t.geometry   :geometry_multi, multi: true
-      t.polygon    :polygon_multi, multi: true
-      t.point      :point_multi, multi: true
-      t.linestring :linestring_multi, multi: true
-    end
-    klass.reset_column_information
   end
 
   private

@@ -21,7 +21,6 @@ class SpatialQueriesTest < ActiveSupport::TestCase  # :nodoc:
     obj.save!
     id = obj.id
     obj2 = SpatialModel.where(latlon: "POINT(1 2)").first
-    puts obj2
     refute_nil(obj2)
     assert_equal(id, obj2.id)
     obj3 = SpatialModel.where(latlon: "POINT(2 2)").first

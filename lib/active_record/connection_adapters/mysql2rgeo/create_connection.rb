@@ -4,8 +4,8 @@ else
   require "mysql2"
 end
 
-module ActiveRecord # :nodoc:
-  module ConnectionHandling # :nodoc:
+module ActiveRecord  # :nodoc:
+  module ConnectionHandling  # :nodoc:
     if RUBY_ENGINE == "jruby"
 
       def jdbcmysql2rgeo_connection(config)

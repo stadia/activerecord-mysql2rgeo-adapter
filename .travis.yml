@@ -2,15 +2,15 @@ dist: trusty
 language: ruby
 sudo: required
 rvm:
-  - 2.4.0
-  - 2.3.3
-  - 2.2.6
-  - jruby-9.0.5.0
+  - 2.4.2
+  - 2.3.5
+  - 2.2.8
+  - jruby-9.1.9.0
 gemfile:
   - gemfiles/ar50.gemfile
 matrix:
   allow_failures:
-    - rvm: jruby-9.0.5.0
+    - rvm: jruby-9.1.9.0
 addons:
   apt:
     packages:

@@ -3,15 +3,22 @@
 
 # :stopdoc:
 
-require "active_record/connection_adapters/mysql2_adapter"
 require "rgeo/active_record"
+
+# autoload AbstractAdapter to avoid circular require and void context warnings
+module ActiveRecord
+  module ConnectionAdapters
+    AbstractAdapter
+  end
+end
+
+require "active_record/connection_adapters/mysql2_adapter"
 require "active_record/connection_adapters/mysql2rgeo/version"
 require "active_record/connection_adapters/mysql2rgeo/column_methods"
 require "active_record/connection_adapters/mysql2rgeo/schema_statements"
 require "active_record/connection_adapters/mysql2rgeo/spatial_table_definition"
 require "active_record/connection_adapters/mysql2rgeo/spatial_column"
 require "active_record/connection_adapters/mysql2rgeo/spatial_expressions"
-require "arel/visitors/bind_visitor"
 require "active_record/connection_adapters/mysql2rgeo/arel_tosql"
 require "active_record/type/spatial"
 require "active_record/connection_adapters/mysql2rgeo/create_connection"
@@ -39,13 +46,15 @@ module ActiveRecord
       # http://postgis.17.x6.nabble.com/Default-SRID-td5001115.html
       DEFAULT_SRID = 0
 
-      ADAPTER_NAME = "Mysql2Rgeo".freeze
-
       def initialize(connection, logger, connection_options, config)
         super
 
         @visitor = Arel::Visitors::Mysql2Rgeo.new(self)
         @visitor.extend(DetermineIfPreparableVisitor) if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
+      end
+
+      def adapter_name
+        "Mysql2Rgeo".freeze
       end
 
       def self.spatial_column_options(key)

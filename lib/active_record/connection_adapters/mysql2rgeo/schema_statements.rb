@@ -8,16 +8,12 @@ module ActiveRecord
         end
 
         def type_to_sql(type, limit = nil, precision = nil, scale = nil, array = nil)
-          if (info = spatial_column_constructor(type.to_sym))
+          if (info = RGeo::ActiveRecord.geometric_type_from_name(type.to_s.delete("_")))
             type = limit[:type] || type if limit.is_a?(::Hash)
             type = "geometry" if type.to_s == "spatial"
             type = type.to_s.delete("_").upcase
           end
-          super(type, limit, precision, scale, array)
-        end
-
-        def spatial_column_constructor(name)
-          RGeo::ActiveRecord::DEFAULT_SPATIAL_COLUMN_CONSTRUCTORS[name]
+          super
         end
 
         # override

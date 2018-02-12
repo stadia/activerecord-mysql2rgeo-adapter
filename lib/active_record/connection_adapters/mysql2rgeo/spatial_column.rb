@@ -11,8 +11,7 @@ module ActiveRecord # :nodoc:
             # @geometric_type = geo_type_from_sql_type(sql_type)
             build_from_sql_type(sql_type_metadata.sql_type)
           end
-          super(name, default, sql_type_metadata, null, table_name, default_function, collation)
-          @comment = comment
+          super(name, default, sql_type_metadata, null, table_name, default_function, collation, comment: comment)
           if spatial?
             if @srid
               @limit = { type: @geometric_type.type_name.underscore }

@@ -1,3 +1,8 @@
+### 2.2.0 / 2018-02-12
+
+* Support comments - #275
+* Require rgeo-activerecord 6.0, require rgeo 1.0. #272
+
 ### 2.0.3 / 2017-11-09
 
 * Improve requires, fix warnings #268

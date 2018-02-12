@@ -51,7 +51,7 @@ Lint/HandleExceptions:
     - 'test/test_helper.rb'
 
 # Offense count: 3
-Lint/RescueWithoutErrorClass:
+Style/RescueStandardError:
   Exclude:
     - 'lib/active_record/type/spatial.rb'
 

@@ -44,8 +44,8 @@ module ActiveRecord
         alias multi_linestring multilinestring
         alias multi_polygon multipolygon
       end
-
-      MySQL::Table.send(:include, ColumnMethods)
     end
+
+    MySQL::Table.include Mysql2Rgeo::ColumnMethods
   end
 end

@@ -12,7 +12,6 @@ module ActiveRecord  # :nodoc:
             end
 
             geo_type = ColumnDefinitionUtils.geo_type(options[:type] || type || info[:type])
-            base_type = info[:type] || :geometry
 
             options[:spatial_type] = geo_type
             column = super(name, geo_type.downcase.to_sym, options)
@@ -23,8 +22,6 @@ module ActiveRecord  # :nodoc:
           column
         end
       end
-
-      SpatialIndexDefinition = Struct.new(*IndexDefinition.members, :spatial)
 
       module ColumnDefinitionUtils
         class << self

@@ -10,7 +10,6 @@ module ActiveRecord
         def type_to_sql(type, limit: nil, precision: nil, scale: nil, unsigned: nil, **) # :nodoc:
           if (info = RGeo::ActiveRecord.geometric_type_from_name(type.to_s.delete("_")))
             type = limit[:type] || type if limit.is_a?(::Hash)
-            type = :geometry if type.eql? :spatial
             type = type.to_s.delete("_").upcase
           end
           super
@@ -19,16 +18,17 @@ module ActiveRecord
         # override
         def native_database_types
           # Add spatial types
+          # Reference: https://dev.mysql.com/doc/refman/5.6/en/spatial-type-overview.html
           super.merge(
+            spatial: { name: "geometry" },
             geometry: { name: "geometry" },
+            geometrycollection: { name: "geometrycollection" },
             point: { name: "point" },
             linestring: { name: "linestring" },
             polygon: { name: "polygon" },
-            multi_geometry: { name: "geometrycollection" },
-            multi_point: { name: "multipoint" },
-            multi_linestring: { name: "multilinestring" },
-            multi_polygon: { name: "multipolygon" },
-            spatial: { name: "geometry", limit: { type: :point } }
+            multipoint: { name: "multipoint" },
+            multilinestring: { name: "multilinestring" },
+            multipolygon: { name: "multipolygon" },
           )
         end
 
@@ -41,10 +41,10 @@ module ActiveRecord
           super
           %w(
             geometry
+            geometrycollection
             point
             linestring
             polygon
-            geometrycollection
             multipoint
             multilinestring
             multipolygon

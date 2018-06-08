@@ -46,7 +46,7 @@ module ActiveRecord
       end
 
       def type
-        :geometry
+        @sql_type.to_sym
       end
 
       def spatial?

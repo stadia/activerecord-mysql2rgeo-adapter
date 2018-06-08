@@ -25,6 +25,7 @@ require "active_record/connection_adapters/mysql2rgeo/create_connection"
 
 # :startdoc:
 
+# ActiveRecord::ConnectionAdapters::Mysql2RgeoAdapter
 module ActiveRecord
   module ConnectionAdapters
     class Mysql2RgeoAdapter < Mysql2Adapter
@@ -50,7 +51,7 @@ module ActiveRecord
         super
 
         @visitor = Arel::Visitors::Mysql2Rgeo.new(self)
-        @visitor.extend(DetermineIfPreparableVisitor) if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
+        # @visitor.extend(DetermineIfPreparableVisitor) if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
       end
 
       def adapter_name
@@ -69,39 +70,10 @@ module ActiveRecord
         !mariadb? && version >= "5.7.6"
       end
 
-      # Returns an array of indexes for the given table.
-      def indexes(table_name, name = nil) #:nodoc:
-        if name
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing name to #indexes is deprecated without replacement.
-          MSG
-        end
-
-        indexes = []
-        current_index = nil
-        execute_and_free("SHOW KEYS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
-          each_hash(result) do |row|
-            if current_index != row[:Key_name]
-              next if row[:Key_name] == "PRIMARY" # skip the primary key
-              current_index = row[:Key_name]
-
-              mysql_index_type = row[:Index_type].downcase.to_sym
-              index_type = INDEX_TYPES.include?(mysql_index_type) ? mysql_index_type : nil
-              index_using = INDEX_USINGS.include?(mysql_index_type) ? mysql_index_type : nil
-              indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], {}, nil, nil, index_type, index_using, row[:Index_comment].presence)
-            end
-
-            indexes.last.columns << row[:Column_name]
-            indexes.last.lengths.merge!(row[:Column_name] => row[:Sub_part].to_i) if row[:Sub_part] && mysql_index_type != :spatial
-          end
-        end
-
-        indexes
-      end
-
       def quote(value)
-        if RGeo::Feature::Geometry.check_type(value)
-          "ST_GeomFromWKB(0x#{RGeo::WKRep::WKBGenerator.new(hex_format: true, little_endian: true).generate(value)},#{value.srid})"
+        dbval = value.try(:value_for_database)
+        if RGeo::Feature::Geometry.check_type(dbval)
+          "ST_GeomFromWKB(0x#{RGeo::WKRep::WKBGenerator.new(hex_format: true, little_endian: true).generate(dbval)},#{dbval.srid})"
         else
           super
         end

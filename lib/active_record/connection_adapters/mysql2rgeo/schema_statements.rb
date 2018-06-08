@@ -37,7 +37,7 @@ module ActiveRecord
           Mysql2Rgeo::TableDefinition.new(*args)
         end
 
-        def initialize_type_map(m)
+        def initialize_type_map(m = type_map)
           super
           %w(
             geometry

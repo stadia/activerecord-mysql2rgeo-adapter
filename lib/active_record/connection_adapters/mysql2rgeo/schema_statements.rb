@@ -3,6 +3,15 @@ module ActiveRecord
     module Mysql2Rgeo
       module SchemaStatements
         # override
+        def indexes(table_name)
+          indexes = super
+          # HACK(aleks, 06/15/18): MySQL 5 does not support prefix lengths for spatial indexes
+          # https://dev.mysql.com/doc/refman/5.6/en/create-index.html
+          indexes.select { |idx| idx.type == :spatial }.each { |idx| idx.instance_variable_set(:@lengths, {}) }
+          indexes
+        end
+
+        # override
         def new_column(*args)
           SpatialColumn.new(*args)
         end

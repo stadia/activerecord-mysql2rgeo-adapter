@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # The activerecord-mysql2rgeo-adapter gem installs the *mysql2rgeo*
 # connection adapter into ActiveRecord.
 
@@ -55,7 +57,7 @@ module ActiveRecord
       end
 
       def adapter_name
-        "Mysql2Rgeo".freeze
+        "Mysql2Rgeo"
       end
 
       def self.spatial_column_options(key)

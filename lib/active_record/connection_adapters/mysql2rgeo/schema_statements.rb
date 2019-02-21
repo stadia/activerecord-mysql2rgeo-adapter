@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module Mysql2Rgeo
       module SchemaStatements
         # override
-        def indexes(table_name)
+        def indexes(table_name) #:nodoc:
           indexes = super
           # HACK(aleks, 06/15/18): MySQL 5 does not support prefix lengths for spatial indexes
           # https://dev.mysql.com/doc/refman/5.6/en/create-index.html
-          indexes.select { |idx| idx.type == :spatial }.each { |idx| idx.instance_variable_set(:@lengths, {}) }
+          indexes.select { |idx| idx.type == :spatial }.each { |idx| idx.is_a?(Struct) ? idx.lengths = {} : idx.instance_variable_set(:@lengths, {}) }
           indexes
         end
 
@@ -68,9 +70,9 @@ module ActiveRecord
           else
             default, default_function = field[:Default], nil
           end
-puts type_metadata.type
+
           SpatialColumn.new(
-              field[:Field],
+            field[:Field],
               default,
               type_metadata,
               field[:Null] == "YES",

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "./lib/active_record/connection_adapters/mysql2rgeo/version.rb"
 
 Gem::Specification.new do |spec|

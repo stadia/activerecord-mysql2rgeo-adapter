@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 if RUBY_ENGINE == "jruby"
   require "active_record/connection_adapters/jdbcmysql_adapter"
 else
@@ -29,7 +31,7 @@ module ActiveRecord # :nodoc:
 
         if Mysql2::Client.const_defined? :FOUND_ROWS
           if config[:flags].is_a? Array
-            config[:flags].push "FOUND_ROWS".freeze
+            config[:flags].push "FOUND_ROWS"
           else
             config[:flags] |= Mysql2::Client::FOUND_ROWS
           end

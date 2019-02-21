@@ -96,7 +96,7 @@ class TasksTest < ActiveSupport::TestCase
     data = File.read(tmp_sql_filename)
 
     assert_includes data,%(t.geometry "latlon", limit: {:type=>"point", :srid=>0}, null: false)
-    assert_includes data,%(t.index ["latlon"], name: "index_spatial_test_on_latlon", length: { latlon: 32 }, type: :spatial)
+    assert_includes data,%(t.index ["latlon"], name: "index_spatial_test_on_latlon", type: :spatial)
   end
 
   def test_add_index_with_no_options

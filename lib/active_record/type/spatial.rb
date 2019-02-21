@@ -18,7 +18,7 @@ module ActiveRecord
       #   geo_type: geography, geometry, point, line_string, polygon, ...
       #   srid:     1234
       def self.parse_sql_type(sql_type)
-        geo_type, srid, has_z, has_m = nil, 0, false, false
+        geo_type, srid = nil, 0, false, false
 
         if sql_type =~ /(geography|geometry)\((.*)\)$/i
           # geometry(Point,4326)

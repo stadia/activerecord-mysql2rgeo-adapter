@@ -8,6 +8,7 @@ rvm:
   - jruby-9.1.9.0
 gemfile:
   - gemfiles/ar51.gemfile
+  - gemfiles/ar52.gemfile
 matrix:
   allow_failures:
     - rvm: jruby-9.1.9.0
@@ -19,6 +20,11 @@ addons:
       - language-pack-ko
   code_climate:
     repo_token: 839b9b8aed0dde7b406316ac3cdfcaba6a5a8466c3efe68cc2d21ec597d00ee3
+env:
+  global:
+    - MYSQL_USER=root
+    - MYSQL_HOST=""
+    - MYSQL_PORT=3306
 before_script:
   - mysql -u root -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test;'
   - mysql -u root -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_tasks_test;'

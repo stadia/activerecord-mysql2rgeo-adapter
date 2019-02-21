@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
-class SpatialQueriesTest < ActiveSupport::TestCase  # :nodoc:
+class SpatialQueriesTest < ActiveSupport::TestCase
   def test_query_point
     create_model
     obj = SpatialModel.new

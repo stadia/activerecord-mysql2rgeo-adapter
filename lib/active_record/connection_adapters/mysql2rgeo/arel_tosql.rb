@@ -5,7 +5,7 @@ module Arel  # :nodoc:
                         ::ArJdbc::MySQL::BindSubstitution
                       else
                         MySQL
-                        end
+                      end
 
     class Mysql2Rgeo < MySQLSuperclass  # :nodoc:
       include RGeo::ActiveRecord::SpatialToSql

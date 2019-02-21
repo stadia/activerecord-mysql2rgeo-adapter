@@ -94,7 +94,7 @@ class TasksTest < ActiveSupport::TestCase
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
-    
+
     assert_includes data,%(t.geometry "latlon", limit: {:type=>"point", :srid=>0}, null: false)
     assert_includes data,%(t.index ["latlon"], name: "index_spatial_test_on_latlon", length: { latlon: 32 }, type: :spatial)
   end

@@ -1,25 +1,30 @@
-dist: trusty
+dist: xenial
 language: ruby
-sudo: required
+sudo: false
 rvm:
-  - 2.4.2
-  - 2.3.5
-  - 2.2.8
+  - 2.5
+  - 2.4
+  - 2.3
+  - 2.2
   - jruby-9.1.9.0
 gemfile:
   - gemfiles/ar51.gemfile
 matrix:
   allow_failures:
     - rvm: jruby-9.1.9.0
+services:
+  - mysql
 addons:
   apt:
     packages:
       - language-pack-ko
   code_climate:
     repo_token: 839b9b8aed0dde7b406316ac3cdfcaba6a5a8466c3efe68cc2d21ec597d00ee3
-before_install:
-  - bash .travis.install-mysql-5.7.sh
+before_script:
   - mysql -u root -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test;'
   - mysql -u root -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_tasks_test;'
   - mkdir tmp && touch tmp/tmp.sql
 script: bundle exec rake test
+before_install:
+  - gem update --system
+  - gem install bundler

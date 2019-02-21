@@ -25,8 +25,6 @@ module ActiveRecord
           params = Regexp.last_match(2).split(",")
           if params.size > 1
             if params.first =~ /([a-z]+[^zm])(z?)(m?)/i
-              has_z = !Regexp.last_match(2).empty?
-              has_m = !Regexp.last_match(3).empty?
               geo_type = Regexp.last_match(1)
             end
             if params.last =~ /(\d+)/
@@ -40,10 +38,11 @@ module ActiveRecord
           # geometry
           geo_type = sql_type
         end
-        [geo_type, srid, has_z, has_m]
+        [geo_type, srid]
       end
 
       def klass
+        puts type
         type == :geometry ? RGeo::Feature::Geometry : super
       end
 

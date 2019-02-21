@@ -60,7 +60,7 @@ class TasksTest < ActiveSupport::TestCase
     setup_database_tasks
     connection.create_table(:spatial_test, force: true) do |t|
       t.geometry "object1"
-      t.spatial "object2", srid: connection.default_srid, limit: { type: "geometry" }
+      t.spatial "object2", type: "geometry", srid: connection.default_srid
     end
     File.open(tmp_sql_filename, "w:utf-8") do |file|
       ActiveRecord::SchemaDumper.dump(connection, file)
@@ -74,7 +74,7 @@ class TasksTest < ActiveSupport::TestCase
     setup_database_tasks
     connection.create_table(:spatial_test, force: true) do |t|
       t.point "latlon1", geographic: true
-      t.spatial "latlon2", limit: { srid: 4326, type: "point", geographic: true }
+      t.spatial "latlon2", type: "point", limit: { srid: 4326, geographic: true }
     end
     File.open(tmp_sql_filename, "w:utf-8") do |file|
       ActiveRecord::SchemaDumper.dump(connection, file)
@@ -94,8 +94,9 @@ class TasksTest < ActiveSupport::TestCase
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
+    
     assert_includes data,%(t.geometry "latlon", limit: {:type=>"point", :srid=>0}, null: false)
-    assert_includes data,%(t.index ["latlon"], name: "index_spatial_test_on_latlon", type: :spatial)
+    assert_includes data,%(t.index ["latlon"], name: "index_spatial_test_on_latlon", length: { latlon: 32 }, type: :spatial)
   end
 
   def test_add_index_with_no_options

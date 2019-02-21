@@ -25,6 +25,7 @@ require "active_record/connection_adapters/mysql2rgeo/create_connection"
 
 # :startdoc:
 
+# ActiveRecord::ConnectionAdapters::Mysql2RgeoAdapter
 module ActiveRecord
   module ConnectionAdapters
     class Mysql2RgeoAdapter < Mysql2Adapter

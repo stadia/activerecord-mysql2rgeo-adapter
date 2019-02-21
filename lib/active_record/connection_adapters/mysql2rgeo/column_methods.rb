@@ -3,45 +3,45 @@ module ActiveRecord
     module Mysql2Rgeo
       module ColumnMethods
         def spatial(name, options = {})
-          raise "You must set a type. For example: 't.spatial :object1, limit: { type: 'point' }'" if options[:limit].blank? || options[:limit][:type].blank?
-          column(name, options[:limit][:type], options)
+          raise "You must set a type. For example: 't.spatial type: :st_point'" unless options[:type]
+          column(name, options[:type], options)
         end
 
-        def geometry(*args, multi: false, **options)
-          multi ? multi_geometry(*args, **options) : args.each { |name| column(name, :geometry, options) }
+        def geometry(name, options = {})
+          column(name, :geometry, options)
         end
 
-        def geometrycollection(*args, **options)
-          args.each { |name| column(name, :geometrycollection, options) }
+        def geometrycollection(name, options = {})
+          column(name, :geometrycollection, options)
+        end
+        alias geometry_collection geometrycollection
+
+        def point(name, options = {})
+          column(name, :point, options)
         end
 
-        def point(*args, multi: false, **options)
-          multi ? multi_point(*args, **options) : args.each { |name| column(name, :point, options) }
+        def multipoint(name, options = {})
+          column(name, :multipoint, options)
         end
-
-        def multipoint(*args, **options)
-          args.each { |name| column(name, :multipoint, options) }
-        end
-
-        def linestring(*args, multi: false, **options)
-          multi ? multi_linestring(*args, **options) : args.each { |name| column(name, :linestring, options) }
-        end
-
-        def multilinestring(*args, **options)
-          args.each { |name| column(name, :multilinestring, options) }
-        end
-
-        def polygon(*args, multi: false, **options)
-          multi ? multipolygon(*args, **options) : args.each { |name| column(name, :polygon, options) }
-        end
-
-        def multipolygon(*args, **options)
-          args.each { |name| column(name, :multipolygon, options) }
-        end
-
         alias multi_point multipoint
-        alias multi_geometry geometrycollection
-        alias multi_linestring multilinestring
+
+        def linestring(name, options = {})
+          column(name, :linestring, options)
+        end
+        alias line_string linestring
+
+        def multilinestring(name, options = {})
+          column(name, :multilinestring, options)
+        end
+        alias multi_line_string multilinestring
+
+        def polygon(name, options = {})
+          column(name, :polygon, options)
+        end
+
+        def multipolygon(name, options = {})
+          column(name, :multipolygon, options)
+        end
         alias multi_polygon multipolygon
       end
     end

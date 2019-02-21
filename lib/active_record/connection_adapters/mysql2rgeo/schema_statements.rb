@@ -37,6 +37,15 @@ module ActiveRecord
         end
 
         # override
+        def indexes(table_name)
+          indexes = super
+          # HACK(aleks, 06/15/18): MySQL 5 does not support prefix lengths for spatial indexes
+          # https://dev.mysql.com/doc/refman/5.6/en/create-index.html
+          indexes.select { |idx| idx.type == :spatial }.each { |idx| idx.instance_variable_set(:@lengths, {}) }
+          indexes
+        end
+
+        # override
         def new_column(*args)
           SpatialColumn.new(*args)
         end
@@ -52,6 +61,7 @@ module ActiveRecord
         # override
         def native_database_types
           # Add spatial types
+          # Reference: https://dev.mysql.com/doc/refman/5.6/en/spatial-type-overview.html
           super.merge(
             spatial: { name: "geometry" },
             geometry: { name: "geometry" },
@@ -61,9 +71,7 @@ module ActiveRecord
             polygon: { name: "polygon" },
             multipoint: { name: "multipoint" },
             multi_point: { name: "multipoint" },
-            multilinestring: { name: "multilinestring" },
             multi_linestring: { name: "multilinestring" },
-            multipolygon: { name: "multipolygon" },
             multi_polygon: { name: "multipolygon" }
           )
         end

@@ -14,21 +14,17 @@ module ActiveRecord
 
       # sql_type: geometry, geometry(Point), geometry(Point,4326), ...
       #
-      # returns [geo_type, srid, has_z, has_m]
+      # returns [geo_type, srid]
       #   geo_type: geography, geometry, point, line_string, polygon, ...
       #   srid:     1234
-      #   has_z:    false
-      #   has_m:    false
       def self.parse_sql_type(sql_type)
-        geo_type, srid, has_z, has_m = nil, 0, false, false
+        geo_type, srid = nil, 0
 
         if sql_type =~ /(geography|geometry)\((.*)\)$/i
           # geometry(Point,4326)
           params = Regexp.last_match(2).split(",")
           if params.size > 1
             if params.first =~ /([a-z]+[^zm])(z?)(m?)/i
-              has_z = !Regexp.last_match(2).empty?
-              has_m = !Regexp.last_match(3).empty?
               geo_type = Regexp.last_match(1)
             end
             if params.last =~ /(\d+)/
@@ -42,7 +38,7 @@ module ActiveRecord
           # geometry
           geo_type = sql_type
         end
-        [geo_type, srid, has_z, has_m]
+        [geo_type, srid]
       end
 
       def klass
@@ -50,7 +46,7 @@ module ActiveRecord
       end
 
       def type
-        :geometry
+        @sql_type.to_sym
       end
 
       def spatial?

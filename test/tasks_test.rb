@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
-class TasksTest < ActiveSupport::TestCase  # :nodoc:
+class TasksTest < ActiveSupport::TestCase
   NEW_CONNECTION = {
     "adapter"            => "mysql2rgeo",
     "host"               => "127.0.0.1",
@@ -25,9 +27,9 @@ class TasksTest < ActiveSupport::TestCase  # :nodoc:
     end
     ActiveRecord::Tasks::DatabaseTasks.structure_dump(NEW_CONNECTION, tmp_sql_filename)
     data = File.read(tmp_sql_filename)
-    assert(data.index("`latlon` point"))
-    assert(data.index("`geo_col` geometry"))
-    assert(data.index("`poly` multipolygon"))
+    assert_includes data, "`latlon` point"
+    assert_includes data, "`geo_col` geometry"
+    assert_includes data, "`poly` multipolygon"
   end
 
   def test_index_sql_dump
@@ -40,9 +42,9 @@ class TasksTest < ActiveSupport::TestCase  # :nodoc:
     connection.add_index :spatial_test, :name, using: :btree
     ActiveRecord::Tasks::DatabaseTasks.structure_dump(NEW_CONNECTION, tmp_sql_filename)
     data = File.read(tmp_sql_filename)
-    assert(data.index("`latlon` point"))
-    assert data.index("SPATIAL KEY `index_spatial_test_on_latlon` (`latlon`)")
-    assert data.index("KEY `index_spatial_test_on_name` (`name`) USING BTREE")
+    assert_includes data, "`latlon` point"
+    assert_includes data, "SPATIAL KEY `index_spatial_test_on_latlon` (`latlon`)"
+    assert_includes data, "KEY `index_spatial_test_on_name` (`name`) USING BTREE"
   end
 
   def test_empty_schema_dump
@@ -64,8 +66,8 @@ class TasksTest < ActiveSupport::TestCase  # :nodoc:
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
-    assert data.index("t.geometry \"object1\", limit: {:type=>\"geometry\", :srid=>#{connection.default_srid}")
-    assert data.index("t.geometry \"object2\", limit: {:type=>\"geometry\", :srid=>#{connection.default_srid}")
+    assert_includes data,"t.geometry \"object1\", limit: {:type=>\"geometry\", :srid=>#{connection.default_srid}"
+    assert_includes data,"t.geometry \"object2\", limit: {:type=>\"geometry\", :srid=>#{connection.default_srid}"
   end
 
   def test_basic_geography_schema_dump
@@ -78,8 +80,8 @@ class TasksTest < ActiveSupport::TestCase  # :nodoc:
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
-    assert data.index(%(t.geometry "latlon1", limit: {:type=>"point", :srid=>0}))
-    assert data.index(%(t.geometry "latlon2", limit: {:type=>"point", :srid=>0}))
+    assert_includes data,%(t.geometry "latlon1", limit: {:type=>"point", :srid=>0})
+    assert_includes data,%(t.geometry "latlon2", limit: {:type=>"point", :srid=>0})
   end
 
   def test_index_schema_dump
@@ -92,8 +94,8 @@ class TasksTest < ActiveSupport::TestCase  # :nodoc:
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
-    assert data.index(%(t.geometry "latlon", limit: {:type=>"point", :srid=>0}, null: false))
-    assert data.index(%(t.index ["latlon"], name: "index_spatial_test_on_latlon", type: :spatial))
+    assert_includes data,%(t.geometry "latlon", limit: {:type=>"point", :srid=>0}, null: false)
+    assert_includes data,%(t.index ["latlon"], name: "index_spatial_test_on_latlon", type: :spatial)
   end
 
   def test_add_index_with_no_options
@@ -104,7 +106,7 @@ class TasksTest < ActiveSupport::TestCase  # :nodoc:
     connection.add_index :test, :name
     ActiveRecord::Tasks::DatabaseTasks.structure_dump(NEW_CONNECTION, tmp_sql_filename)
     data = File.read(tmp_sql_filename)
-    assert data.index("KEY `index_test_on_name` (`name`)")
+    assert_includes data,"KEY `index_test_on_name` (`name`)"
   end
 
   def test_add_index_via_references
@@ -115,7 +117,7 @@ class TasksTest < ActiveSupport::TestCase  # :nodoc:
     end
     ActiveRecord::Tasks::DatabaseTasks.structure_dump(NEW_CONNECTION, tmp_sql_filename)
     data = File.read(tmp_sql_filename)
-    assert data.index("KEY `index_dogs_on_cats_id` (`cats_id`)")
+    assert_includes data,"KEY `index_dogs_on_cats_id` (`cats_id`)"
   end
 
   private

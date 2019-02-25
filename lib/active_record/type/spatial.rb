@@ -21,21 +21,18 @@ module ActiveRecord
         geo_type, srid = nil, 0, false, false
 
         if sql_type =~ /(geography|geometry)\((.*)\)$/i
+          # geometry(Point)
           # geometry(Point,4326)
           params = Regexp.last_match(2).split(",")
-          if params.size > 1
-            if params.first =~ /([a-z]+[^zm])(z?)(m?)/i
-              geo_type = Regexp.last_match(1)
-            end
-            if params.last =~ /(\d+)/
-              srid = Regexp.last_match(1).to_i
-            end
-          else
-            # geometry(Point)
-            geo_type = params[0]
+          if params.first =~ /([a-z]+[^zm])(z?)(m?)/i
+            geo_type = Regexp.last_match(1)
+          end
+          if params.last =~ /(\d+)/
+            srid = Regexp.last_match(1).to_i
           end
         else
           # geometry
+          # otherType(a,b)
           geo_type = sql_type
         end
         [geo_type, srid]

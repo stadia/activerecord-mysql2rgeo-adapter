@@ -1,6 +1,7 @@
 adapter: mysql2rgeo
-database: mysql2rgeo_adapter_test
-host: 127.0.0.1
-username: root
-encoding: utf8
-password: ""
+host: <%= ENV["MYSQL_HOST"] || "127.0.0.1" %>
+port: <%= ENV["MYSQL_PORT"] || "3306" %>
+database: <%= ENV["MYSQL_DATABASE"] || "mysql2rgeo_adapter_test" %>
+username: <%= ENV["MYSQL_USER"] || "root" %>
+password: <%= ENV["MYSQL_PASSWORD"] || "" %>
+encoding: utf8mb4

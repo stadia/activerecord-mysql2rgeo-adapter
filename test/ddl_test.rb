@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
-class DDLTest < ActiveSupport::TestCase  # :nodoc:
+class DDLTest < ActiveSupport::TestCase
   def test_spatial_column_options
     [
       :geometry,

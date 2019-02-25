@@ -34,9 +34,9 @@ module ActiveRecord # :nodoc:
           false
         end
 
+        alias :geographic? :geographic
         alias :has_z? :has_z
         alias :has_m? :has_m
-        alias :geographic? :geographic
 
         def limit
           if spatial?
@@ -65,7 +65,7 @@ module ActiveRecord # :nodoc:
         end
 
         def build_from_sql_type(sql_type)
-          geo_type, @srid, @has_z, @has_m = Type::Spatial.parse_sql_type(sql_type)
+          geo_type, @srid = Type::Spatial.parse_sql_type(sql_type)
           set_geometric_type_from_name(geo_type)
         end
       end

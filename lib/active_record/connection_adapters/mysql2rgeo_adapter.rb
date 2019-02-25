@@ -27,7 +27,6 @@ require "active_record/connection_adapters/mysql2rgeo/create_connection"
 
 # :startdoc:
 
-# ActiveRecord::ConnectionAdapters::Mysql2RgeoAdapter
 module ActiveRecord
   module ConnectionAdapters
     class Mysql2RgeoAdapter < Mysql2Adapter
@@ -35,16 +34,16 @@ module ActiveRecord
 
       SPATIAL_COLUMN_OPTIONS =
         {
-          geometry: {},
-          geometrycollection: {},
-          linestring: {},
-          multilinestring: {},
-          multipoint: {},
-          multipolygon: {},
-          spatial: { type: "geometry" },
-          point: {},
-          polygon: {}
-        }.freeze
+          geometry:            {},
+          geometrycollection:  {},
+          linestring:          {},
+          multilinestring:     {},
+          multipoint:          {},
+          multipolygon:        {},
+          spatial:             { type: "geometry" },
+          point:               {},
+          polygon:             {}
+        }
 
       # http://postgis.17.x6.nabble.com/Default-SRID-td5001115.html
       DEFAULT_SRID = 0
@@ -53,7 +52,6 @@ module ActiveRecord
         super
 
         @visitor = Arel::Visitors::Mysql2Rgeo.new(self)
-        # @visitor.extend(DetermineIfPreparableVisitor) if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
       end
 
       def adapter_name

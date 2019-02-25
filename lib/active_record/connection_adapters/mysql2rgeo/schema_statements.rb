@@ -26,16 +26,15 @@ module ActiveRecord
           # Add spatial types
           # Reference: https://dev.mysql.com/doc/refman/5.6/en/spatial-type-overview.html
           super.merge(
-            spatial: { name: "geometry" },
-            geometry: { name: "geometry" },
-            geometrycollection: { name: "geometrycollection" },
-            point: { name: "point" },
-            linestring: { name: "linestring" },
-            polygon: { name: "polygon" },
-            multipoint: { name: "multipoint" },
-            multi_point: { name: "multipoint" },
-            multi_linestring: { name: "multilinestring" },
-            multi_polygon: { name: "multipolygon" }
+            geometry:            { name: "geometry" },
+            geometrycollection:  { name: "geometrycollection" },
+            linestring:          { name: "linestring" },
+            multi_line_string:   { name: "multilinestring" },
+            multi_point:         { name: "multipoint" },
+            multi_polygon:       { name: "multipolygon" },
+            spatial:             { name: "geometry" },
+            point:               { name: "point" },
+            polygon:             { name: "polygon" }
           )
         end
 
@@ -72,7 +71,7 @@ module ActiveRecord
           end
 
           SpatialColumn.new(
-            field[:Field],
+              field[:Field],
               default,
               type_metadata,
               field[:Null] == "YES",
@@ -81,16 +80,6 @@ module ActiveRecord
               field[:Collation],
               comment: field[:Comment].presence
           )
-          # MySQL::Column.new(
-          #     field[:Field],
-          #     default,
-          #     type_metadata,
-          #     field[:Null] == "YES",
-          #     table_name,
-          #     default_function,
-          #     field[:Collation],
-          #     comment: field[:Comment].presence
-          # )
         end
       end
     end

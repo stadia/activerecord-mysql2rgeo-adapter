@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Type
     class Spatial < Value # :nodoc:
@@ -14,53 +16,49 @@ module ActiveRecord
 
       # sql_type: geometry, geometry(Point), geometry(Point,4326), ...
       #
-      # returns [geo_type, srid, has_z, has_m]
+      # returns [geo_type, srid]
       #   geo_type: geography, geometry, point, line_string, polygon, ...
       #   srid:     1234
       def self.parse_sql_type(sql_type)
         geo_type, srid = nil, 0, false, false
 
         if sql_type =~ /(geography|geometry)\((.*)\)$/i
+          # geometry(Point)
           # geometry(Point,4326)
           params = Regexp.last_match(2).split(",")
-          if params.size > 1
-            if params.first =~ /([a-z]+[^zm])(z?)(m?)/i
-              geo_type = Regexp.last_match(1)
-            end
-            if params.last =~ /(\d+)/
-              srid = Regexp.last_match(1).to_i
-            end
-          else
-            # geometry(Point)
-            geo_type = params[0]
+          if params.first =~ /([a-z]+[^zm])(z?)(m?)/i
+            geo_type = Regexp.last_match(1)
+          end
+          if params.last =~ /(\d+)/
+            srid = Regexp.last_match(1).to_i
           end
         else
           # geometry
+          # otherType(a,b)
           geo_type = sql_type
         end
         [geo_type, srid]
       end
 
-      def klass
-        puts type
-        type == :geometry ? RGeo::Feature::Geometry : super
+      def spatial_factory
+        @spatial_factory ||=
+            RGeo::ActiveRecord::SpatialFactoryStore.instance.factory(
+                geo_type: @geo_type,
+                sql_type: @sql_type,
+                srid:     @srid
+            )
       end
 
-      def type
-        :geometry
+      def klass
+        type == :geometry ? RGeo::Feature::Geometry : super
       end
 
       def spatial?
         true
       end
 
-      def spatial_factory
-        @spatial_factory ||=
-          RGeo::ActiveRecord::SpatialFactoryStore.instance.factory(
-            geo_type: @geo_type,
-            sql_type: @sql_type,
-            srid: @srid
-          )
+      def type
+        :geometry
       end
 
       # support setting an RGeo object or a WKT string
@@ -78,35 +76,23 @@ module ActiveRecord
 
       def cast_value(value)
         return if value.nil?
-        case value
-        when ::RGeo::Feature::Geometry
-          value
-          # RGeo::Feature.cast(value, spatial_factory) rescue nil
-        when ::String
-          marker = value[4, 1]
-          if marker == "\x00" || marker == "\x01"
-            srid = value[0, 4].unpack(marker == "\x01" ? "V" : "N").first
-            begin
-              RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: srid).parse(value[4..-1])
-            rescue
-              nil
-            end
-          elsif value[0, 10] =~ /[0-9a-fA-F]{8}0[01]/
-            srid = value[0, 8].to_i(16)
-            srid = [srid].pack("V").unpack("N").first if value[9, 1] == "1"
-            begin
-              RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: srid).parse(value[8..-1])
-            rescue
-              nil
-            end
-          else
-            begin
-              RGeo::WKRep::WKTParser.new(spatial_factory, support_ewkt: true, default_srid: @srid).parse(value)
-            rescue
-              nil
-            end
-          end
+        ::String === value ? parse_wkt(value) : value
+      end
+
+      def parse_wkt(string)
+        marker = string[4, 1]
+        if marker == "\x00" || marker == "\x01"
+          srid = string[0, 4].unpack(marker == "\x01" ? "V" : "N").first
+          RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: srid).parse(string[4..-1])
+        elsif string[0, 10] =~ /[0-9a-fA-F]{8}0[01]/
+          srid = string[0, 8].to_i(16)
+          srid = [srid].pack("V").unpack("N").first if string[9, 1] == "1"
+          RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: srid).parse(string[8..-1])
+        else
+          RGeo::WKRep::WKTParser.new(spatial_factory, support_ewkt: true, default_srid: @srid).parse(string)
         end
+      rescue RGeo::Error::ParseError
+        nil
       end
     end
   end

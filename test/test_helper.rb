@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "minitest/autorun"
 require "minitest/pride"
 require "mocha/minitest"
@@ -15,7 +17,7 @@ module ActiveRecord
     DATABASE_CONFIG_PATH = File.dirname(__FILE__) << "/database.yml"
 
     def self.test_connection_hash
-      YAML.load(ERB.new(File.read(DATABASE_CONFIG_PATH)).result)
+      YAML.safe_load(ERB.new(File.read(DATABASE_CONFIG_PATH)).result)
     end
 
     def self.establish_test_connection

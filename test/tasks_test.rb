@@ -72,8 +72,8 @@ class TasksTest < ActiveSupport::TestCase
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
-    assert_includes data,%(t.geometry "latlon1", limit: {:type=>"point", :srid=>0})
-    assert_includes data,%(t.geometry "latlon2", limit: {:type=>"point", :srid=>0})
+    assert_includes data, %(t.geometry "latlon1", limit: {:type=>"point", :srid=>0})
+    assert_includes data, %(t.geometry "latlon2", limit: {:type=>"point", :srid=>0})
   end
 
   def test_index_schema_dump
@@ -87,8 +87,8 @@ class TasksTest < ActiveSupport::TestCase
     end
     data = File.read(tmp_sql_filename)
 
-    assert_includes data,%(t.geometry "latlon", limit: {:type=>"point", :srid=>0}, null: false)
-    assert_includes data,%(t.index ["latlon"], name: "index_spatial_test_on_latlon", type: :spatial)
+    assert_includes data, %(t.geometry "latlon", limit: {:type=>"point", :srid=>0}, null: false)
+    assert_includes data, %(t.index ["latlon"], name: "index_spatial_test_on_latlon", type: :spatial)
   end
 
   def test_add_index_with_no_options
@@ -99,7 +99,7 @@ class TasksTest < ActiveSupport::TestCase
     connection.add_index :test, :name
     ActiveRecord::Tasks::DatabaseTasks.structure_dump(new_connection, tmp_sql_filename)
     data = File.read(tmp_sql_filename)
-    assert_includes data,"KEY `index_test_on_name` (`name`)"
+    assert_includes data, "KEY `index_test_on_name` (`name`)"
   end
 
   def test_add_index_via_references
@@ -110,7 +110,7 @@ class TasksTest < ActiveSupport::TestCase
     end
     ActiveRecord::Tasks::DatabaseTasks.structure_dump(new_connection, tmp_sql_filename)
     data = File.read(tmp_sql_filename)
-    assert_includes data,"KEY `index_dogs_on_cats_id` (`cats_id`)"
+    assert_includes data, "KEY `index_dogs_on_cats_id` (`cats_id`)"
   end
 
   private

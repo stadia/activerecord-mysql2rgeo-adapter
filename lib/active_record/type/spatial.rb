@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Type
     class Spatial < Value # :nodoc:
@@ -63,11 +65,13 @@ module ActiveRecord
       # support setting an RGeo object or a WKT string
       def serialize(value)
         return if value.nil?
+
         geo_value = cast_value(value)
 
         # TODO - only valid types should be allowed
         # e.g. linestring is not valid for point column
         raise "maybe should raise" unless RGeo::Feature::Geometry.check_type(geo_value)
+
         geo_value
       end
 
@@ -75,6 +79,7 @@ module ActiveRecord
 
       def cast_value(value)
         return if value.nil?
+
         case value
         when ::RGeo::Feature::Geometry
           value

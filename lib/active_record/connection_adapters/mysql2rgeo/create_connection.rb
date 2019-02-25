@@ -15,7 +15,7 @@ module ActiveRecord # :nodoc:
         mysql2_connection(config)
       end
 
-      alias jdbcmysql2rgeo_connection mysql2rgeo_connection
+      alias_method :jdbcmysql2rgeo_connection, :mysql2rgeo_connection
 
     else
 

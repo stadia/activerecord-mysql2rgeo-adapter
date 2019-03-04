@@ -91,7 +91,7 @@ module ActiveRecord
         else
           RGeo::WKRep::WKTParser.new(spatial_factory, support_ewkt: true, default_srid: @srid).parse(string)
         end
-      rescue RGeo::Error::ParseError
+      rescue RGeo::Error::ParseError, RGeo::Error::InvalidGeometry
         nil
       end
     end

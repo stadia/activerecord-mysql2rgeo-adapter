@@ -42,11 +42,11 @@ module ActiveRecord
 
       def spatial_factory
         @spatial_factory ||=
-            RGeo::ActiveRecord::SpatialFactoryStore.instance.factory(
-                geo_type: @geo_type,
-                sql_type: @sql_type,
-                srid:     @srid
-            )
+          RGeo::ActiveRecord::SpatialFactoryStore.instance.factory(
+            geo_type: @geo_type,
+            sql_type: @sql_type,
+            srid: @srid
+          )
       end
 
       def klass
@@ -64,11 +64,13 @@ module ActiveRecord
       # support setting an RGeo object or a WKT string
       def serialize(value)
         return if value.nil?
+
         geo_value = cast_value(value)
 
         # TODO - only valid types should be allowed
         # e.g. linestring is not valid for point column
         raise "maybe should raise" unless RGeo::Feature::Geometry.check_type(geo_value)
+
         geo_value
       end
 
@@ -76,6 +78,7 @@ module ActiveRecord
 
       def cast_value(value)
         return if value.nil?
+
         ::String === value ? parse_wkt(value) : value
       end
 

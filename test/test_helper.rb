@@ -5,6 +5,8 @@ require "minitest/pride"
 require "mocha/minitest"
 require "activerecord-mysql2rgeo-adapter"
 require "erb"
+require "simplecov"
+SimpleCov.start
 
 begin
   require "byebug"

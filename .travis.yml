@@ -25,11 +25,17 @@ env:
     - MYSQL_USER=root
     - MYSQL_HOST=""
     - MYSQL_PORT=3306
+    - CC_TEST_REPORTER_ID=fe440aa514caa78124e40aafa2d6f748e9c0d6a61b13d6cad29299f568651166
 before_script:
   - mysql -u root -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test;'
   - mysql -u root -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_tasks_test;'
   - mkdir tmp && touch tmp/tmp.sql
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
 script: bundle exec rake test
+after_script:
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
 before_install:
   - gem update --system
   - gem install bundler

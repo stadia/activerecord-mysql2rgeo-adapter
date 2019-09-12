@@ -84,7 +84,9 @@ class SpatialQueriesTest < ActiveSupport::TestCase
   private
 
   def create_model
-    SpatialModel.connection.create_table(:spatial_models, force: true) do |t|
+    #ActiveRecord::Migration.drop_table(:spatial_models)
+    SpatialModel.connection.drop_table(:spatial_models) if SpatialModel.connection.table_exists?(:spatial_models)
+    SpatialModel.connection.create_table(:spatial_models) do |t|
       t.column "latlon", :point, srid: 3785
       t.column "path", :line_string, srid: 3785
     end

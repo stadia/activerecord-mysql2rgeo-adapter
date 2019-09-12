@@ -123,7 +123,7 @@ class BasicTest < ActiveSupport::TestCase
     point = object.latlon
     # assert_equal 47, point.latitude
     object.shape = point
-    assert_equal true, RGeo::Geos.is_geos?(object.shape)
+    assert_equal true, object.shape.is_a?(RGeo::Cartesian::PointImpl)
 
     spatial_factory_store.clear
   end
@@ -158,13 +158,15 @@ class BasicTest < ActiveSupport::TestCase
     rec.m_poly = wkt
     assert rec.save
     rec = SpatialModel.find(rec.id) # force reload
-    assert rec.m_poly.is_a?(RGeo::Geos::CAPIMultiPolygonImpl)
+    assert rec.m_poly.is_a?(RGeo::Cartesian::MultiPolygonImpl)
     assert_equal wkt, rec.m_poly.to_s
   end
 
   private
 
   def create_model
+    #ActiveRecord::Migration.drop_table(:spatial_models)
+    #SpatialModel.connection.drop_table(:spatial_models)
     SpatialModel.connection.create_table(:spatial_models, force: true) do |t|
       t.column "latlon", :point, srid: 3785
       t.column "latlon_geo", :point, srid: 4326, geographic: true

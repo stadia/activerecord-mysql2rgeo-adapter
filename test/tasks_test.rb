@@ -5,9 +5,9 @@ require "test_helper"
 class TasksTest < ActiveSupport::TestCase
   def test_empty_sql_dump
     setup_database_tasks
-    ActiveRecord::Tasks::DatabaseTasks.structure_dump(new_connection, tmp_sql_filename)
-    sql = File.read(tmp_sql_filename)
-    assert(sql !~ /CREATE TABLE/)
+
+    data = dump_and_read_schema(mysqldump: true)
+    assert(data !~ /CREATE TABLE/)
   end
 
   def test_sql_dump
@@ -17,8 +17,8 @@ class TasksTest < ActiveSupport::TestCase
       t.geometry "geo_col", srid: 4326
       t.column "poly", :multi_polygon, srid: 4326
     end
-    ActiveRecord::Tasks::DatabaseTasks.structure_dump(new_connection, tmp_sql_filename)
-    data = File.read(tmp_sql_filename)
+
+    data = dump_and_read_schema(mysqldump: true)
     assert_includes data, "`latlon` point"
     assert_includes data, "`geo_col` geometry"
     assert_includes data, "`poly` multipolygon"
@@ -32,8 +32,8 @@ class TasksTest < ActiveSupport::TestCase
     end
     connection.add_index :spatial_test, :latlon, type: :spatial
     connection.add_index :spatial_test, :name, using: :btree
-    ActiveRecord::Tasks::DatabaseTasks.structure_dump(new_connection, tmp_sql_filename)
-    data = File.read(tmp_sql_filename)
+
+    data = dump_and_read_schema(mysqldump: true)
     assert_includes data, "`latlon` point"
     assert_includes data, "SPATIAL KEY `index_spatial_test_on_latlon` (`latlon`)"
     assert_includes data, "KEY `index_spatial_test_on_name` (`name`) USING BTREE"
@@ -41,10 +41,8 @@ class TasksTest < ActiveSupport::TestCase
 
   def test_empty_schema_dump
     setup_database_tasks
-    File.open(tmp_sql_filename, "w:utf-8") do |file|
-      ActiveRecord::SchemaDumper.dump(::ActiveRecord::Base.connection, file)
-    end
-    data = File.read(tmp_sql_filename)
+
+    data = dump_and_read_schema
     assert_includes data, "ActiveRecord::Schema"
   end
 
@@ -54,10 +52,8 @@ class TasksTest < ActiveSupport::TestCase
       t.geometry "object1"
       t.spatial "object2", srid: connection.default_srid, type: "geometry"
     end
-    File.open(tmp_sql_filename, "w:utf-8") do |file|
-      ActiveRecord::SchemaDumper.dump(connection, file)
-    end
-    data = File.read(tmp_sql_filename)
+
+    data = dump_and_read_schema
     assert_includes data, "t.geometry \"object1\", limit: {:type=>\"geometry\", :srid=>#{connection.default_srid}"
     assert_includes data, "t.geometry \"object2\", limit: {:type=>\"geometry\", :srid=>#{connection.default_srid}"
   end
@@ -68,10 +64,8 @@ class TasksTest < ActiveSupport::TestCase
       t.point "latlon1", geographic: true
       t.spatial "latlon2", type: "point", limit: { srid: 4326, geographic: true }
     end
-    File.open(tmp_sql_filename, "w:utf-8") do |file|
-      ActiveRecord::SchemaDumper.dump(connection, file)
-    end
-    data = File.read(tmp_sql_filename)
+    
+    data = dump_and_read_schema
     assert_includes data, %(t.geometry "latlon1", limit: {:type=>"point", :srid=>0})
     assert_includes data, %(t.geometry "latlon2", limit: {:type=>"point", :srid=>0})
   end
@@ -82,11 +76,8 @@ class TasksTest < ActiveSupport::TestCase
       t.point "latlon", null: false, geographic: true
     end
     connection.add_index :spatial_test, :latlon, type: :spatial
-    File.open(tmp_sql_filename, "w:utf-8") do |file|
-      ActiveRecord::SchemaDumper.dump(connection, file)
-    end
-    data = File.read(tmp_sql_filename)
 
+    data = dump_and_read_schema
     assert_includes data, %(t.geometry "latlon", limit: {:type=>"point", :srid=>0}, null: false)
     assert_includes data, %(t.index ["latlon"], name: "index_spatial_test_on_latlon", type: :spatial)
   end
@@ -97,8 +88,8 @@ class TasksTest < ActiveSupport::TestCase
       t.string "name"
     end
     connection.add_index :test, :name
-    ActiveRecord::Tasks::DatabaseTasks.structure_dump(new_connection, tmp_sql_filename)
-    data = File.read(tmp_sql_filename)
+
+    data = dump_and_read_schema(mysqldump: true)
     assert_includes data, "KEY `index_test_on_name` (`name`)"
   end
 
@@ -108,8 +99,8 @@ class TasksTest < ActiveSupport::TestCase
     connection.create_table(:dogs, force: true) do |t|
       t.references :cats, index: true
     end
-    ActiveRecord::Tasks::DatabaseTasks.structure_dump(new_connection, tmp_sql_filename)
-    data = File.read(tmp_sql_filename)
+
+    data = dump_and_read_schema(mysqldump: true)
     assert_includes data, "KEY `index_dogs_on_cats_id` (`cats_id`)"
   end
 
@@ -120,7 +111,7 @@ class TasksTest < ActiveSupport::TestCase
   end
 
   def connection
-    ActiveRecord::Base.connection
+    SpatialModel.connection
   end
 
   def tmp_sql_filename
@@ -130,15 +121,26 @@ class TasksTest < ActiveSupport::TestCase
   def setup_database_tasks
     FileUtils.rm_f(tmp_sql_filename)
     FileUtils.mkdir_p(File.dirname(tmp_sql_filename))
-    drop_db_if_exists
-    ActiveRecord::Tasks::MySQLDatabaseTasks.new(new_connection).create
-  rescue ActiveRecord::Tasks::DatabaseAlreadyExists
-    # ignore
+    SpatialModel.connection.drop_table(:spatial_models) if SpatialModel.connection.table_exists?(:spatial_models)
   end
 
-  def drop_db_if_exists
-    ActiveRecord::Tasks::MySQLDatabaseTasks.new(new_connection).drop
-  rescue ActiveRecord::Tasks::DatabaseAlreadyExists
-    # ignore
+  def mysqldump_exists?
+    `mysqldump`
+    true
+  rescue Errno::ENOENT
+    false
   end
+
+  def dump_and_read_schema(mysqldump: false)
+    if mysqldump
+      skip "mysqldump not found" unless mysqldump_exists?
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(new_connection, tmp_sql_filename)
+    else
+      File.open(tmp_sql_filename, "w:utf-8") do |file|
+        ActiveRecord::SchemaDumper.dump(connection, file)
+      end
+    end
+    File.read(tmp_sql_filename)
+  end
+
 end

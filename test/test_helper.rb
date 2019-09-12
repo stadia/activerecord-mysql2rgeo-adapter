@@ -17,9 +17,11 @@ end
 module ActiveRecord
   class Base
     DATABASE_CONFIG_PATH = File.dirname(__FILE__) << "/database.yml"
+    DATABASE_LOCAL_CONFIG_PATH = File.dirname(__FILE__) << "/database_local.yml"
 
     def self.test_connection_hash
-      YAML.safe_load(ERB.new(File.read(DATABASE_CONFIG_PATH)).result)
+      db_config_path = File.exist?(DATABASE_LOCAL_CONFIG_PATH) ? DATABASE_LOCAL_CONFIG_PATH : DATABASE_CONFIG_PATH
+      YAML.safe_load(ERB.new(File.read(db_config_path)).result)
     end
 
     def self.establish_test_connection

@@ -111,7 +111,7 @@ class TasksTest < ActiveSupport::TestCase
   end
 
   def connection
-    SpatialModel.connection
+    ActiveRecord::Base.connection
   end
 
   def tmp_sql_filename
@@ -121,7 +121,13 @@ class TasksTest < ActiveSupport::TestCase
   def setup_database_tasks
     FileUtils.rm_f(tmp_sql_filename)
     FileUtils.mkdir_p(File.dirname(tmp_sql_filename))
-    SpatialModel.connection.drop_table(:spatial_models) if SpatialModel.connection.table_exists?(:spatial_models)
+    drop_db_if_exists
+    ActiveRecord::Tasks::MySQLDatabaseTasks.new(new_connection).create
+  end
+
+  def drop_db_if_exists
+    ActiveRecord::Tasks::MySQLDatabaseTasks.new(new_connection).drop
+  rescue ActiveRecord::NoDatabaseError
   end
 
   def mysqldump_exists?

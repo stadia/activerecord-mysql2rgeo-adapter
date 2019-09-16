@@ -123,7 +123,7 @@ class BasicTest < ActiveSupport::TestCase
     point = object.latlon
     # assert_equal 47, point.latitude
     object.shape = point
-    assert_equal true, object.shape.is_a?(RGeo::Cartesian::PointImpl)
+    assert_equal true, RGeo::Geos.is_geos?(object.shape)
 
     spatial_factory_store.clear
   end
@@ -158,7 +158,7 @@ class BasicTest < ActiveSupport::TestCase
     rec.m_poly = wkt
     assert rec.save
     rec = SpatialModel.find(rec.id) # force reload
-    assert rec.m_poly.is_a?(RGeo::Cartesian::MultiPolygonImpl)
+    assert rec.m_poly.is_a?(RGeo::Geos::CAPIMultiPolygonImpl)
     assert_equal wkt, rec.m_poly.to_s
   end
 

@@ -6,11 +6,7 @@ require "mocha/minitest"
 require "activerecord-mysql2rgeo-adapter"
 require "erb"
 
-begin
-  require "byebug"
-rescue LoadError
-  # ignore
-end
+require "byebug" if ENV["BYEBUG"]
 
 module ActiveRecord
   class Base

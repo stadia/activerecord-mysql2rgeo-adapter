@@ -59,28 +59,6 @@ class SpatialQueriesTest < ActiveSupport::TestCase
     assert_nil(obj3)
   end
 
-  def test_query_st_distance_sphere
-    create_model
-    obj = SpatialModel.create!(latlon: factory.point(1, 2))
-    id = obj.id
-    obj2 = SpatialModel.find_by(SpatialModel.arel_table[:latlon].st_distance_sphere("POINT(2 3)").lt(157_178))
-    refute_nil(obj2)
-    assert_equal(id, obj2.id)
-    obj3 = SpatialModel.find_by(SpatialModel.arel_table[:latlon].st_distance_sphere("POINT(2 3)").gt(157_178))
-    assert_nil(obj3)
-  end
-
-  def test_query_st_distance_sphere_from_constant
-    create_model
-    obj = SpatialModel.create!(latlon: factory.point(1, 2))
-    id = obj.id
-    obj2 = SpatialModel.find_by(::Arel.spatial("POINT(2 3)").st_distance_sphere(SpatialModel.arel_table[:latlon]).lt(157_178))
-    refute_nil(obj2)
-    assert_equal(id, obj2.id)
-    obj3 = SpatialModel.find_by(::Arel.spatial("POINT(2 3)").st_distance_sphere(SpatialModel.arel_table[:latlon]).gt(157_178))
-    assert_nil(obj3)
-  end
-
   private
 
   def create_model

@@ -5,8 +5,6 @@ require "minitest/pride"
 require "mocha/minitest"
 require "activerecord-mysql2rgeo-adapter"
 require "erb"
-require "simplecov"
-SimpleCov.start
 
 begin
   require "byebug"
@@ -19,7 +17,7 @@ module ActiveRecord
     DATABASE_CONFIG_PATH = File.dirname(__FILE__) << "/database.yml"
 
     def self.test_connection_hash
-      YAML.safe_load(ERB.new(File.read(DATABASE_CONFIG_PATH)).result)
+      YAML.load(ERB.new(File.read(DATABASE_CONFIG_PATH)).result)
     end
 
     def self.establish_test_connection

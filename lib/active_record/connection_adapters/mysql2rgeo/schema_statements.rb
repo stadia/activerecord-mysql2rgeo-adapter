@@ -4,6 +4,8 @@ module ActiveRecord
   module ConnectionAdapters
     module Mysql2Rgeo
       module SchemaStatements
+        # super: https://github.com/rails/rails/blob/master/activerecord/lib/active_record/connection_adapters/mysql/schema_statements.rb
+
         # override
         def indexes(table_name) #:nodoc:
           indexes = super
@@ -55,10 +57,9 @@ module ActiveRecord
         end
 
         private
-
         # override
-        def create_table_definition(*args)
-          Mysql2Rgeo::TableDefinition.new(*args)
+        def create_table_definition(*args, **options)
+          Mysql2Rgeo::TableDefinition.new(self, *args, **options)
         end
 
         # override
@@ -75,9 +76,8 @@ module ActiveRecord
               default,
               type_metadata,
               field[:Null] == "YES",
-              table_name,
               default_function,
-              field[:Collation],
+              collation: field[:Collation],
               comment: field[:Comment].presence
           )
         end

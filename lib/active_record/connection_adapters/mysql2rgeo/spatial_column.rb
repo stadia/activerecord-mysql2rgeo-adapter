@@ -2,7 +2,8 @@ module ActiveRecord # :nodoc:
   module ConnectionAdapters # :nodoc:
     module Mysql2Rgeo # :nodoc:
       class SpatialColumn < ConnectionAdapters::MySQL::Column # :nodoc:
-        def initialize(name, default, sql_type_metadata = nil, null = true, table_name = nil, default_function = nil, collation = nil, comment: nil)
+
+        def initialize(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, **)
           @geometric_type = nil
           if sql_type =~ /geometry|point|linestring|polygon/i
             build_from_sql_type(sql_type_metadata.sql_type)
@@ -11,7 +12,7 @@ module ActiveRecord # :nodoc:
             # @geometric_type = geo_type_from_sql_type(sql_type)
             build_from_sql_type(sql_type_metadata.sql_type)
           end
-          super(name, default, sql_type_metadata, null, table_name, default_function, collation, comment: comment)
+          super(name, default, sql_type_metadata, null, default_function, collation: collation, comment: comment)
           if spatial?
             if @srid
               @limit = { type: @geometric_type.type_name.underscore }

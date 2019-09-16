@@ -7,9 +7,11 @@ Fork the repo:
 Set up your test database:
 
 ```sh
-createuser -s postgres
-psql -U postgres -c "create database postgis_adapter_test"
-psql -U postgres -d postgis_adapter_test -c "create extension postgis"
+mysql --user root
+grant all on mysql2rgeo_adapter_test.* to mysql2rgeo_adapter_test@localhost identified by 'mysql2rgeo_adapter_test';
+grant all on mysql2rgeo_tasks_test.* to mysql2rgeo_adapter_test@localhost identified by 'mysql2rgeo_adapter_test';
+create database mysql2rgeo_adapter_test;
+create database mysql2rgeo_tasks_test;
 ```
 
 You may also set up environment variables to define the database connection.
@@ -17,14 +19,11 @@ See `test/database.yml` for which variables are used. All are optional.
 For example:
 
 ```sh
-export PGUSER=postgis_test
-export PGPASSWORD=password123
-export PGPORT=95432
-export PGHOST=127.0.0.2
-export PGDATABASE=postgis_adapter_test
-
-psql -c "create database postgis_adapter_test"
-psql -c "create extension postgis"
+export MYSQL_HOST=localhost
+export MYSQL_PORT=3306
+export MYSQL_DATABASE=mysql2rgeo_adapter_test
+export MYSQL_USER=mysql2rgeo_adapter_test
+export MYSQL_PASSWORD=mysql2rgeo_adapter_test
 ```
 
 Install dependencies:

@@ -15,9 +15,9 @@ module ActiveRecord  # :nodoc:
             geo_type = ColumnDefinitionUtils.geo_type(options[:type] || type || info[:type])
 
             options[:spatial_type] = geo_type
-            column = super(name, geo_type.downcase.to_sym, options)
+            column = super(name, geo_type.downcase.to_sym, **options)
           else
-            column = super(name, type, options)
+            column = super(name, type, **options)
           end
 
           column

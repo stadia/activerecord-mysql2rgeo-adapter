@@ -24,6 +24,7 @@ require "active_record/connection_adapters/mysql2rgeo/spatial_expressions"
 require "active_record/connection_adapters/mysql2rgeo/arel_tosql"
 require "active_record/type/spatial"
 require "active_record/connection_adapters/mysql2rgeo/create_connection"
+require "active_record/tasks/database_tasks"
 
 # :startdoc:
 

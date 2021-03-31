@@ -13,6 +13,15 @@ class SpatialQueriesTest < ActiveSupport::TestCase
     assert_equal id, obj1.id
   end
 
+  def test_query_multi_point
+    create_model
+    obj = SpatialModel.create!(points: factory.multi_point([factory.point(1, 2)]))
+    id = obj.id
+    obj2 = SpatialModel.find_by(points: factory.multi_point([factory.point(1, 2)]))
+    refute_nil(obj2)
+    assert_equal(id, obj2.id)
+  end
+
   def test_query_point_wkt
     create_model
     obj = SpatialModel.create!(latlon: factory.point(1, 2))
@@ -59,34 +68,13 @@ class SpatialQueriesTest < ActiveSupport::TestCase
     assert_nil(obj3)
   end
 
-  def test_query_st_distance_sphere
-    create_model
-    obj = SpatialModel.create!(latlon: factory.point(1, 2))
-    id = obj.id
-    obj2 = SpatialModel.find_by(SpatialModel.arel_table[:latlon].st_distance_sphere("POINT(2 3)").lt(157_178))
-    refute_nil(obj2)
-    assert_equal(id, obj2.id)
-    obj3 = SpatialModel.find_by(SpatialModel.arel_table[:latlon].st_distance_sphere("POINT(2 3)").gt(157_178))
-    assert_nil(obj3)
-  end
-
-  def test_query_st_distance_sphere_from_constant
-    create_model
-    obj = SpatialModel.create!(latlon: factory.point(1, 2))
-    id = obj.id
-    obj2 = SpatialModel.find_by(::Arel.spatial("POINT(2 3)").st_distance_sphere(SpatialModel.arel_table[:latlon]).lt(157_178))
-    refute_nil(obj2)
-    assert_equal(id, obj2.id)
-    obj3 = SpatialModel.find_by(::Arel.spatial("POINT(2 3)").st_distance_sphere(SpatialModel.arel_table[:latlon]).gt(157_178))
-    assert_nil(obj3)
-  end
-
   private
 
   def create_model
     SpatialModel.connection.create_table(:spatial_models, force: true) do |t|
       t.column "latlon", :point, srid: 3785
       t.column "path", :line_string, srid: 3785
+      t.column "points", :multi_point, srid: 3785
     end
     SpatialModel.reset_column_information
   end

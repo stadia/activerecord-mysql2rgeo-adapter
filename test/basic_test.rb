@@ -91,8 +91,8 @@ class BasicTest < ActiveSupport::TestCase
       t.polygon(:area, srid: 4326)
     end
     klass.reset_column_information
-    custom_factory = RGeo::Geographic.spherical_factory(buffer_resolution: 8, srid: 4326)
-    spatial_factory_store.register(custom_factory, geo_type: "polygon", srid: 4326)
+    custom_factory = RGeo::Geographic.spherical_factory(buffer_resolution: 8, srid: 0)
+    spatial_factory_store.register(custom_factory, geo_type: "polygon", srid: 0)
     object = klass.new
     area = custom_factory.point(1, 2).buffer(3)
     object.area = area
@@ -158,7 +158,7 @@ class BasicTest < ActiveSupport::TestCase
     rec.m_poly = wkt
     assert rec.save
     rec = SpatialModel.find(rec.id) # force reload
-    assert rec.m_poly.is_a?(RGeo::Geos::CAPIMultiPolygonImpl)
+    assert RGeo::Feature::MultiPolygon.check_type(rec.m_poly)
     assert_equal wkt, rec.m_poly.to_s
   end
 

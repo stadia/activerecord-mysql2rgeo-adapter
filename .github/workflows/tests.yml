@@ -5,28 +5,25 @@ jobs:
   test-ubuntu-ruby:
     runs-on: ubuntu-latest
     services:
-      postgis:
-        image: postgis/postgis:${{matrix.pg}}
+      mysql:
+        image: mysql:${{matrix.mysql}}
         ports:
-          - 5432:5432
+          - 3306:3306
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        options: >-
-          --name=postgres
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          MYSQL_DATABASE: mysql2rgeo_adapter_test
+          MYSQL_USER: user
+          MYSQL_PASSWORD: password
+          MYSQL_ROOT_PASSWORD: password
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     env:
       BUNDLE_GEMFILE: ${{matrix.gemfile}}
     strategy:
       matrix:
-        ruby: ['2.6', '2.5', '2.4', jruby]
+        ruby: ['2.6', '2.5', '2.4']
         gemfile:
           - gemfiles/ar51.gemfile
           - gemfiles/ar52.gemfile
-        pg: [9.6-3.0, 10-2.5, 11-3.0, 12-master, 13-master]
+        mysql: ['5.7']
     steps:
       - name: Set Up Actions
         uses: actions/checkout@v2
@@ -37,12 +34,15 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
+      - name: Shutdown Ubuntu MySQL (SUDO)
+        run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
       - name: Create Database
-        run: psql -d postgresql://postgres:postgres@localhost:5432/postgres -c "create database postgis_adapter_test"
-      - name: Create PostGIS Extension
-        run: psql -d postgresql://postgres:postgres@localhost:5432/postgis_adapter_test -c "create extension postgis"
+        run: |
+          mysql -uroot -h127.0.0.1 -ppassword -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test;'
+          mysql -uroot -h127.0.0.1 -ppassword -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_tasks_test;'
       - name: Run Tests
         run: bundle exec rake test
         env:
-          PGHOST: localhost
-          PGPASSWORD: postgres
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_PASSWORD: password
+

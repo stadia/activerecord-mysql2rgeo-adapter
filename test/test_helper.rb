@@ -38,6 +38,10 @@ module ActiveSupport
   class TestCase
     self.test_order = :sorted
 
+    def database_version
+      @database_version ||= SpatialModel.connection.select_value("SELECT version()")
+    end
+
     def factory
       RGeo::Cartesian.preferred_factory(srid: 0)
     end

@@ -91,13 +91,15 @@ class BasicTest < ActiveSupport::TestCase
       t.polygon(:area, srid: 4326)
     end
     klass.reset_column_information
-    custom_factory = RGeo::Geographic.spherical_factory(buffer_resolution: 8, srid: 0)
-    spatial_factory_store.register(custom_factory, geo_type: "polygon", srid: 0)
+    custom_factory = RGeo::Geographic.spherical_factory(buffer_resolution: 8, srid: 4326)
+    spatial_factory_store.register(custom_factory, geo_type: "polygon", srid: 4326)
     object = klass.new
     area = custom_factory.point(1, 2).buffer(3)
     object.area = area
     object.save!
     object.reload
+    puts area.to_s
+    puts object.area.to_s
     assert_equal area.to_s, object.area.to_s
     spatial_factory_store.clear
   end

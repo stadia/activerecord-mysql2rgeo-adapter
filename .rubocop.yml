@@ -4,7 +4,7 @@ AllCops:
   TargetRubyVersion: 2.5
   DisplayCopNames: true
 
-Layout/AlignParameters:
+Layout/ParameterAlignment:
   Enabled: false
 
 Layout/MultilineOperationIndentation:

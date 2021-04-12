@@ -17,9 +17,11 @@ end
 require "active_record/connection_adapters/mysql2_adapter"
 require "active_record/connection_adapters/mysql2rgeo/version"
 require "active_record/connection_adapters/mysql2rgeo/column_methods"
+require "active_record/connection_adapters/mysql2rgeo/schema_creation"
 require "active_record/connection_adapters/mysql2rgeo/schema_statements"
 require "active_record/connection_adapters/mysql2rgeo/spatial_table_definition"
 require "active_record/connection_adapters/mysql2rgeo/spatial_column"
+require "active_record/connection_adapters/mysql2rgeo/spatial_column_info"
 require "active_record/connection_adapters/mysql2rgeo/spatial_expressions"
 require "active_record/connection_adapters/mysql2rgeo/arel_tosql"
 require "active_record/type/spatial"
@@ -43,7 +45,7 @@ module ActiveRecord
           spatial:             { type: "geometry" },
           point:               {},
           polygon:             {}
-        }
+        }.freeze
 
       # http://postgis.17.x6.nabble.com/Default-SRID-td5001115.html
       DEFAULT_SRID = 0

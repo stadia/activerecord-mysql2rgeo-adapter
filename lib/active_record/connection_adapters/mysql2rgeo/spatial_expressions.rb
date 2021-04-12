@@ -15,6 +15,6 @@ module RGeo
 end
 
 # Allow chaining of spatial expressions from attributes
-Arel::Attribute.send :include, RGeo::ActiveRecord::Mysql2Rgeo::SpatialExpressions
-RGeo::ActiveRecord::SpatialConstantNode.send :include, RGeo::ActiveRecord::Mysql2Rgeo::SpatialExpressions
-RGeo::ActiveRecord::SpatialNamedFunction.send :include, RGeo::ActiveRecord::Mysql2Rgeo::SpatialExpressions
+Arel::Attribute.include RGeo::ActiveRecord::Mysql2Rgeo::SpatialExpressions
+RGeo::ActiveRecord::SpatialConstantNode.include RGeo::ActiveRecord::Mysql2Rgeo::SpatialExpressions
+RGeo::ActiveRecord::SpatialNamedFunction.include RGeo::ActiveRecord::Mysql2Rgeo::SpatialExpressions

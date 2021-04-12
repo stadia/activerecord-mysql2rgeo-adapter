@@ -15,7 +15,7 @@ module ActiveRecord
 
     def self.test_connection_hash
       db_config_path = File.exist?(DATABASE_LOCAL_CONFIG_PATH) ? DATABASE_LOCAL_CONFIG_PATH : DATABASE_CONFIG_PATH
-      YAML.load(ERB.new(File.read(db_config_path)).result)
+      YAML.safe_load(ERB.new(File.read(db_config_path)).result)
     end
 
     def self.establish_test_connection
@@ -37,7 +37,7 @@ module ActiveSupport
     self.test_order = :sorted
 
     def factory
-      RGeo::Cartesian.preferred_factory(srid: 0)
+      RGeo::Cartesian.preferred_factory(srid: 3857)
     end
 
     def geographic_factory

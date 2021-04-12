@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-module Arel  # :nodoc:
-  module Visitors  # :nodoc:
+module Arel # :nodoc:
+  module Visitors # :nodoc:
     # Different super-class under JRuby JDBC adapter.
     MySQLSuperclass = if defined?(::ArJdbc::MySQL::BindSubstitution)
                         ::ArJdbc::MySQL::BindSubstitution
@@ -27,11 +27,54 @@ module Arel  # :nodoc:
       end
 
       def visit_String(node, collector)
-        collector << "#{st_func('ST_WKTToSQL')}(#{quote(node)})"
+        node, srid = Mysql2Rgeo.parse_node(node)
+        collector << if srid == 0
+                       "#{st_func('ST_WKTToSQL')}(#{quote(node)})"
+                     else
+                       "#{st_func('ST_WKTToSQL')}(#{quote(node)}, #{srid})"
+                     end
       end
 
       def visit_RGeo_ActiveRecord_SpatialNamedFunction(node, collector)
         aggregate(st_func(node.name), node, collector)
+      end
+
+      def visit_in_spatial_context(node, collector)
+        case node
+        when String
+          node, srid = Mysql2Rgeo.parse_node(node)
+          collector << if srid == 0
+                         "#{st_func('ST_WKTToSQL')}(#{quote(node)})"
+                       else
+                         "#{st_func('ST_WKTToSQL')}(#{quote(node)}, #{srid})"
+                       end
+        when RGeo::Feature::Instance
+          collector << visit_RGeo_Feature_Instance(node, collector)
+        when RGeo::Cartesian::BoundingBox
+          collector << visit_RGeo_Cartesian_BoundingBox(node, collector)
+        else
+          visit(node, collector)
+        end
+      end
+
+      def self.parse_node(node)
+        value, srid = nil, 0
+        if node =~ /.*;.*$/i
+          params = Regexp.last_match(0).split(";")
+          if params.first =~ /(srid|SRID)=\d*/
+            srid = params.first.split("=").last.to_i
+          else
+            value = params.first
+          end
+          if params.last =~ /(srid|SRID)=\d*/
+            srid = params.last.split("=").last.to_i
+          else
+            value = params.last
+          end
+        else
+          value = node
+        end
+        [value, srid]
       end
     end
   end

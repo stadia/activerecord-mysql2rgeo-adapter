@@ -11,10 +11,13 @@ module ActiveRecord
           indexes = super
           # HACK(aleks, 06/15/18): MySQL 5 does not support prefix lengths for spatial indexes
           # https://dev.mysql.com/doc/refman/5.6/en/create-index.html
-          indexes.select { |idx| idx.type == :spatial }.each { |idx| idx.is_a?(Struct) ? idx.lengths = {} : idx.instance_variable_set(:@lengths, {}) }
+          indexes.select do |idx|
+            idx.type == :spatial
+          end.each { |idx| idx.is_a?(Struct) ? idx.lengths = {} : idx.instance_variable_set(:@lengths, {}) }
           indexes
         end
 
+        # override
         def type_to_sql(type, limit: nil, precision: nil, scale: nil, unsigned: nil, **) # :nodoc:
           if (info = RGeo::ActiveRecord.geometric_type_from_name(type.to_s.delete("_")))
             type = limit[:type] || type if limit.is_a?(::Hash)
@@ -42,7 +45,8 @@ module ActiveRecord
 
         def initialize_type_map(m = type_map)
           super
-          %w(
+
+          %w[
             geometry
             geometrycollection
             point
@@ -51,12 +55,20 @@ module ActiveRecord
             multipoint
             multilinestring
             multipolygon
-          ).each do |geo_type|
-            m.register_type(geo_type, Type::Spatial.new(geo_type))
+          ].each do |geo_type|
+            m.register_type(geo_type) do |sql_type|
+              Type::Spatial.new(sql_type)
+            end
           end
         end
 
         private
+
+        # override
+        def schema_creation
+          Mysql2Rgeo::SchemaCreation.new(self)
+        end
+
         # override
         def create_table_definition(*args, **options)
           Mysql2Rgeo::TableDefinition.new(self, *args, **options)
@@ -65,21 +77,34 @@ module ActiveRecord
         # override
         def new_column_from_field(table_name, field)
           type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-          if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(field[:Default])
-            default, default_function = nil, field[:Default]
-          else
-            default, default_function = field[:Default], nil
+          default, default_function = field[:Default], nil
+
+          if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
+            default, default_function = nil, default
+          elsif type_metadata.extra == "DEFAULT_GENERATED"
+            default = +"(#{default})" unless default.start_with?("(")
+            default, default_function = nil, default
           end
 
+          # {:dimension=>2, :has_m=>false, :has_z=>false, :name=>"latlon", :srid=>0, :type=>"GEOMETRY"}
+          spatial = spatial_column_info(table_name).get(field[:Field], type_metadata.sql_type)
+
           SpatialColumn.new(
-              field[:Field],
-              default,
-              type_metadata,
-              field[:Null] == "YES",
-              default_function,
-              collation: field[:Collation],
-              comment: field[:Comment].presence
+            field[:Field],
+            default,
+            type_metadata,
+            field[:Null] == "YES",
+            default_function,
+            collation: field[:Collation],
+            comment: field[:Comment].presence,
+            spatial: spatial
           )
+        end
+
+        # memoize hash of column infos for tables
+        def spatial_column_info(table_name)
+          @spatial_column_info ||= {}
+          @spatial_column_info[table_name.to_sym] = SpatialColumnInfo.new(self, table_name.to_s)
         end
       end
     end

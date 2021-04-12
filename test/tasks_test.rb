@@ -3,12 +3,12 @@
 require "test_helper"
 
 class TasksTest < ActiveSupport::TestCase
-  # def test_empty_sql_dump
-  #   setup_database_tasks
-  #   ActiveRecord::Tasks::DatabaseTasks.structure_dump(new_connection, tmp_sql_filename)
-  #   sql = File.read(tmp_sql_filename)
-  #   assert(sql !~ /CREATE TABLE/)
-  # end
+  def test_empty_sql_dump
+    setup_database_tasks
+    ActiveRecord::Tasks::DatabaseTasks.structure_dump(new_connection, tmp_sql_filename)
+    sql = File.read(tmp_sql_filename)
+    assert(sql !~ /CREATE TABLE/)
+  end
 
   # def test_sql_dump
   #   setup_database_tasks
@@ -23,7 +23,7 @@ class TasksTest < ActiveSupport::TestCase
   #   assert_includes data, "`geo_col` geometry"
   #   assert_includes data, "`poly` multipolygon"
   # end
-
+  #
   # def test_index_sql_dump
   #   setup_database_tasks
   #   connection.create_table(:spatial_test, force: true) do |t|
@@ -42,7 +42,7 @@ class TasksTest < ActiveSupport::TestCase
   def test_empty_schema_dump
     setup_database_tasks
     File.open(tmp_sql_filename, "w:utf-8") do |file|
-      ActiveRecord::SchemaDumper.dump(::ActiveRecord::Base.connection, file)
+      ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
     end
     data = File.read(tmp_sql_filename)
     assert_includes data, "ActiveRecord::Schema"
@@ -86,7 +86,6 @@ class TasksTest < ActiveSupport::TestCase
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
-
     assert_includes data, %(t.geometry "latlon", limit: {:type=>"point", :srid=>0}, null: false)
     assert_includes data, %(t.index ["latlon"], name: "index_spatial_test_on_latlon", type: :spatial)
   end
@@ -101,7 +100,7 @@ class TasksTest < ActiveSupport::TestCase
   #   data = File.read(tmp_sql_filename)
   #   assert_includes data, "KEY `index_test_on_name` (`name`)"
   # end
-
+  #
   # def test_add_index_via_references
   #   setup_database_tasks
   #   connection.create_table(:cats, force: true)

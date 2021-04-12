@@ -72,9 +72,9 @@ class SpatialQueriesTest < ActiveSupport::TestCase
 
   def create_model
     SpatialModel.connection.create_table(:spatial_models, force: true) do |t|
-      t.column "latlon", :point, srid: 3785
-      t.column "path", :line_string, srid: 3785
-      t.column "points", :multi_point, srid: 3785
+      t.column "latlon", :point, srid: 3857
+      t.column "path", :line_string, srid: 3857
+      t.column "points", :multi_point, srid: 3857
     end
     SpatialModel.reset_column_information
   end

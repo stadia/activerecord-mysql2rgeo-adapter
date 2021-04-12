@@ -111,7 +111,7 @@ class BasicTest < ActiveSupport::TestCase
     klass = SpatialModel
     klass.connection.create_table(:spatial_models, force: true) do |t|
       t.column(:shape, :geometry)
-      t.linestring(:path, srid: 3785)
+      t.linestring(:path, srid: 3857)
       t.point(:latlon, null: false, geographic: true)
     end
     klass.reset_column_information
@@ -168,7 +168,7 @@ class BasicTest < ActiveSupport::TestCase
 
   def create_model
     SpatialModel.connection.create_table(:spatial_models, force: true) do |t|
-      t.column "latlon", :point, srid: 3785
+      t.column "latlon", :point, srid: 3857
       t.column "latlon_geo", :point, srid: 4326, geographic: true
     end
     SpatialModel.reset_column_information

@@ -208,7 +208,7 @@ class DDLTest < ActiveSupport::TestCase
 
   def test_create_polygon_with_options
     klass.connection.create_table(:spatial_models, force: true) do |t|
-      t.column "region", :polygon, has_m: true, srid: 3785
+      t.column "region", :polygon, has_m: true, srid: 3857
     end
     klass.reset_column_information
     col = klass.columns.last

@@ -7,13 +7,7 @@
 
 require "rgeo/active_record"
 
-# autoload AbstractAdapter to avoid circular require and void context warnings
-module ActiveRecord
-  module ConnectionAdapters
-    AbstractAdapter
-  end
-end
-
+require "active_record/connection_adapters"
 require "active_record/connection_adapters/mysql2_adapter"
 require "active_record/connection_adapters/mysql2rgeo/version"
 require "active_record/connection_adapters/mysql2rgeo/column_methods"
@@ -25,13 +19,35 @@ require "active_record/connection_adapters/mysql2rgeo/spatial_column_info"
 require "active_record/connection_adapters/mysql2rgeo/spatial_expressions"
 require "active_record/connection_adapters/mysql2rgeo/arel_tosql"
 require "active_record/type/spatial"
-require "active_record/connection_adapters/mysql2rgeo/create_connection"
 
 # :startdoc:
 
 module ActiveRecord
+  module ConnectionHandling # :nodoc:
+    # Establishes a connection to the database that's used by all Active Record objects.
+    def mysql2rgeo_connection(config)
+      config = config.symbolize_keys
+      config[:flags] ||= 0
+
+      if config[:flags].kind_of? Array
+        config[:flags].push "FOUND_ROWS"
+      else
+        config[:flags] |= Mysql2::Client::FOUND_ROWS
+      end
+
+      ConnectionAdapters::Mysql2RgeoAdapter.new(
+        ConnectionAdapters::Mysql2RgeoAdapter.new_client(config),
+        logger,
+        nil,
+        config,
+      )
+    end
+  end
+
   module ConnectionAdapters
     class Mysql2RgeoAdapter < Mysql2Adapter
+      ADAPTER_NAME = "Mysql2Rgeo"
+
       include Mysql2Rgeo::SchemaStatements
 
       SPATIAL_COLUMN_OPTIONS =
@@ -54,10 +70,6 @@ module ActiveRecord
         super
 
         @visitor = Arel::Visitors::Mysql2Rgeo.new(self)
-      end
-
-      def adapter_name
-        "Mysql2Rgeo"
       end
 
       def self.spatial_column_options(key)

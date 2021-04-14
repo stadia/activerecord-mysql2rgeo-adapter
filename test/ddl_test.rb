@@ -197,7 +197,6 @@ class DDLTest < ActiveSupport::TestCase
   end
 
   def test_create_geometry_using_shortcut_with_srid
-    klass.connection.supports_index_sort_order?
     klass.connection.create_table(:spatial_models, force: true) do |t|
       t.geometry "latlon", srid: 4326
     end
@@ -205,8 +204,7 @@ class DDLTest < ActiveSupport::TestCase
     col = klass.columns.last
     assert_equal RGeo::Feature::Geometry, col.geometric_type
     if klass.connection.supports_index_sort_order?
-      assert_equal({ srid: 4326, type: "geometry" },
-                   col.limit)
+      assert_equal({ srid: 4326, type: "geometry" }, col.limit)
     else
       assert_equal({ srid: 0, type: "geometry" }, col.limit)
     end
@@ -224,8 +222,7 @@ class DDLTest < ActiveSupport::TestCase
     assert_equal false, col.has_m?
     klass.connection.supports_index_sort_order? ? assert_equal(3857, col.srid) : assert_equal(0, col.srid)
     if klass.connection.supports_index_sort_order?
-      assert_equal({ type: "polygon", srid: 3857 },
-                   col.limit)
+      assert_equal({ type: "polygon", srid: 3857 }, col.limit)
     else
       assert_equal({ type: "polygon", srid: 0 }, col.limit)
     end

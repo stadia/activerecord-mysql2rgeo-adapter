@@ -43,24 +43,16 @@ module ActiveRecord # :nodoc:
         alias has_z? has_z
         alias has_m? has_m
 
-        def limit
-          if spatial?
-            @limit
-          else
-            super
-          end
+        def multi?
+          /^(geometrycollection|multi)/i.match?(sql_type)
         end
 
-        def klass
-          type == :spatial ? RGeo::Feature::Geometry : super
+        def limit
+          spatial? ? @limit : super
         end
 
         def spatial?
           !@geometric_type.nil?
-        end
-
-        def multi?
-          /^(geometrycollection|multi)/i.match?(sql_type)
         end
 
         private

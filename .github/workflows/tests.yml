@@ -21,7 +21,7 @@ jobs:
       matrix:
         ruby: ['3.0', '2.7', '2.6', '2.5']
         gemfile:
-          - gemfiles/ar60.gemfile
+          - gemfiles/ar61.gemfile
         mysql: ['5.7', '8.0']
     steps:
       - name: Set Up Actions

@@ -20,7 +20,7 @@ module ActiveRecord # :nodoc:
           super(name, default, sql_type_metadata, null, default_function, collation: collation, comment: comment)
           if spatial?
             if @srid
-              @limit = { type: @geometric_type.type_name.underscore, srid: @srid }
+              @limit = { type: geometric_type.type_name.underscore, srid: @srid }
             end
           end
         end
@@ -52,7 +52,7 @@ module ActiveRecord # :nodoc:
         end
 
         def spatial?
-          !@geometric_type.nil?
+          %i[geometry geography].include?(@sql_type_metadata.type)
         end
 
         private

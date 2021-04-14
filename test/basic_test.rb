@@ -25,16 +25,16 @@ class BasicTest < ActiveSupport::TestCase
     assert_nil obj.latlon
     obj.latlon = factory.point(1.0, 2.0)
     assert_equal factory.point(1.0, 2.0), obj.latlon
-    assert_equal 0, obj.latlon.srid
+    assert_equal 3857, obj.latlon.srid
   end
 
   def test_set_and_get_point_from_wkt
     create_model
     obj = SpatialModel.new
     assert_nil obj.latlon
-    obj.latlon = "POINT(1 2)"
+    obj.latlon = "SRID=3857;POINT(1 2)"
     assert_equal factory.point(1.0, 2.0), obj.latlon
-    assert_equal 0, obj.latlon.srid
+    assert_equal 3857, obj.latlon.srid
   end
 
   def test_save_and_load_point
@@ -45,7 +45,7 @@ class BasicTest < ActiveSupport::TestCase
     id = obj.id
     obj2 = SpatialModel.find(id)
     assert_equal factory.point(1.0, 2.0), obj2.latlon
-    assert_equal 0, obj2.latlon.srid
+    assert_equal 3857, obj2.latlon.srid
     # assert_equal true, RGeo::Geos.is_geos?(obj2.latlon)
   end
 
@@ -57,19 +57,19 @@ class BasicTest < ActiveSupport::TestCase
     id = obj.id
     obj2 = SpatialModel.find(id)
     # assert_equal geographic_factory.point(1.0, 2.0), obj2.latlon_geo
-    assert_equal 0, obj2.latlon_geo.srid
+    assert_equal 4326, obj2.latlon_geo.srid
     # assert_equal false, RGeo::Geos.is_geos?(obj2.latlon_geo)
   end
 
   def test_save_and_load_point_from_wkt
     create_model
     obj = SpatialModel.new
-    obj.latlon = "POINT(1 2)"
+    obj.latlon = "SRID=3857;POINT(1 2)"
     obj.save!
     id = obj.id
     obj2 = SpatialModel.find(id)
     assert_equal factory.point(1.0, 2.0), obj2.latlon
-    assert_equal 0, obj2.latlon.srid
+    assert_equal 3857, obj2.latlon.srid
   end
 
   def test_set_point_bad_wkt
@@ -88,11 +88,11 @@ class BasicTest < ActiveSupport::TestCase
   def test_custom_factory
     klass = SpatialModel
     klass.connection.create_table(:spatial_models, force: true) do |t|
-      t.polygon(:area, srid: 4326)
+      t.polygon(:area, srid: 3857)
     end
     klass.reset_column_information
-    custom_factory = RGeo::Geographic.spherical_factory(buffer_resolution: 8, srid: 4326)
-    spatial_factory_store.register(custom_factory, geo_type: "polygon", srid: 4326)
+    custom_factory = RGeo::Geographic.spherical_factory(buffer_resolution: 8, srid: 3857)
+    spatial_factory_store.register(custom_factory, geo_type: "polygon", srid: 3857)
     object = klass.new
     area = custom_factory.point(1, 2).buffer(3)
     object.area = area
@@ -104,12 +104,13 @@ class BasicTest < ActiveSupport::TestCase
 
   def test_readme_example
     spatial_factory_store.register(
-      RGeo::Geographic.spherical_factory, geo_type: "point", sql_type: "geography")
+      RGeo::Geographic.spherical_factory, geo_type: "point", sql_type: "geography"
+    )
 
     klass = SpatialModel
     klass.connection.create_table(:spatial_models, force: true) do |t|
       t.column(:shape, :geometry)
-      t.linestring(:path, srid: 3785)
+      t.linestring(:path, srid: 3857)
       t.point(:latlon, null: false, geographic: true)
     end
     klass.reset_column_information
@@ -139,7 +140,7 @@ class BasicTest < ActiveSupport::TestCase
   def test_custom_column
     create_model
     rec = SpatialModel.new
-    rec.latlon = "POINT(0 0)"
+    rec.latlon = "SRID=3857;POINT(0 0)"
     rec.save
     refute_nil SpatialModel.select("CURRENT_TIMESTAMP as ts").first.ts
   end
@@ -165,10 +166,8 @@ class BasicTest < ActiveSupport::TestCase
   private
 
   def create_model
-    #ActiveRecord::Migration.drop_table(:spatial_models)
-    #SpatialModel.connection.drop_table(:spatial_models)
     SpatialModel.connection.create_table(:spatial_models, force: true) do |t|
-      t.column "latlon", :point, srid: 3785
+      t.column "latlon", :point, srid: 3857
       t.column "latlon_geo", :point, srid: 4326, geographic: true
     end
     SpatialModel.reset_column_information

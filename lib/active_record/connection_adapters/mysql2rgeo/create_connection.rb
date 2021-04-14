@@ -15,7 +15,7 @@ module ActiveRecord # :nodoc:
         mysql2_connection(config)
       end
 
-      alias_method :jdbcmysql2rgeo_connection, :mysql2rgeo_connection
+      alias jdbcmysql2rgeo_connection mysql2rgeo_connection
 
     else
 
@@ -39,8 +39,8 @@ module ActiveRecord # :nodoc:
 
         client = Mysql2::Client.new(config)
         ConnectionAdapters::Mysql2RgeoAdapter.new(client, logger, nil, config)
-      rescue Mysql2::Error => error
-        if error.message.include?("Unknown database")
+      rescue Mysql2::Error => e
+        if e.message.include?("Unknown database")
           raise ActiveRecord::NoDatabaseError
         else
           raise

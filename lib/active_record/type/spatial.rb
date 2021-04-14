@@ -21,7 +21,6 @@ module ActiveRecord
       #   srid:     1234
       def self.parse_sql_type(sql_type)
         geo_type, srid = nil, 0, false, false
-
         if sql_type =~ /(geography|geometry)\((.*)\)$/i
           # geometry(Point)
           # geometry(Point,4326)
@@ -67,7 +66,7 @@ module ActiveRecord
 
         geo_value = cast_value(value)
 
-        # TODO - only valid types should be allowed
+        # TODO: - only valid types should be allowed
         # e.g. linestring is not valid for point column
         raise "maybe should raise" unless RGeo::Feature::Geometry.check_type(geo_value)
 
@@ -82,16 +81,18 @@ module ActiveRecord
         ::String === value ? parse_wkt(value) : value
       end
 
+      # convert WKT string into RGeo object
       def parse_wkt(string)
         marker = string[4, 1]
-        if marker == "\x00" || marker == "\x01"
-          srid = string[0, 4].unpack(marker == "\x01" ? "V" : "N").first
-          RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: srid).parse(string[4..-1])
+        if ["\x00", "\x01"].include?(marker)
+          @srid = string[0, 4].unpack1(marker == "\x01" ? "V" : "N")
+          RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: @srid).parse(string[4..-1])
         elsif string[0, 10] =~ /[0-9a-fA-F]{8}0[01]/
-          srid = string[0, 8].to_i(16)
-          srid = [srid].pack("V").unpack("N").first if string[9, 1] == "1"
+          @srid = string[0, 8].to_i(16)
+          @srid = [@srid].pack("V").unpack("N").first if string[9, 1] == "1"
           RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: srid).parse(string[8..-1])
         else
+          string, @srid = Arel::Visitors::Mysql2Rgeo.parse_node(string)
           RGeo::WKRep::WKTParser.new(spatial_factory, support_ewkt: true, default_srid: @srid).parse(string)
         end
       rescue RGeo::Error::ParseError, RGeo::Error::InvalidGeometry

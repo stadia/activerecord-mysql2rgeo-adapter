@@ -4,15 +4,15 @@ require "test_helper"
 
 class DDLTest < ActiveSupport::TestCase
   def test_spatial_column_options
-    [
-      :geometry,
-      :geometrycollection,
-      :linestring,
-      :multilinestring,
-      :multipoint,
-      :multipolygon,
-      :point,
-      :polygon,
+    %i[
+      geometry
+      geometrycollection
+      linestring
+      multilinestring
+      multipoint
+      multipolygon
+      point
+      polygon
     ].each do |type|
       assert ActiveRecord::ConnectionAdapters::Mysql2RgeoAdapter.spatial_column_options(type), type
     end
@@ -80,7 +80,7 @@ class DDLTest < ActiveSupport::TestCase
     assert_equal 0, columns[-3].srid
     assert_equal true, columns[-3].spatial?
     assert_equal RGeo::Feature::Point, columns[-2].geometric_type
-    assert_equal 0, columns[-2].srid
+    klass.connection.supports_index_sort_order? ? assert_equal(4326, columns[-2].srid) : assert_equal(0, columns[-2].srid)
     assert_equal false, columns[-2].geographic?
     assert_equal true, columns[-2].spatial?
     assert_nil columns[-1].geometric_type
@@ -117,12 +117,12 @@ class DDLTest < ActiveSupport::TestCase
     assert_equal true, cols[-4].spatial?
     # geom3
     assert_equal RGeo::Feature::Point, cols[-3].geometric_type
-    assert_equal 0, cols[-3].srid
+    klass.connection.supports_index_sort_order? ? assert_equal(4326, cols[-3].srid) : assert_equal(0, cols[-3].srid)
     assert_equal false, cols[-3].geographic?
     assert_equal true, cols[-3].spatial?
     # geom2
     assert_equal RGeo::Feature::Point, cols[-2].geometric_type
-    assert_equal 0, cols[-2].srid
+    klass.connection.supports_index_sort_order? ? assert_equal(4326, cols[-2].srid) : assert_equal(0, cols[-2].srid)
     assert_equal false, cols[-2].geographic?
     assert_equal true, cols[-2].spatial?
     # name
@@ -197,18 +197,24 @@ class DDLTest < ActiveSupport::TestCase
   end
 
   def test_create_geometry_using_shortcut_with_srid
+    klass.connection.supports_index_sort_order?
     klass.connection.create_table(:spatial_models, force: true) do |t|
       t.geometry "latlon", srid: 4326
     end
     klass.reset_column_information
     col = klass.columns.last
     assert_equal RGeo::Feature::Geometry, col.geometric_type
-    assert_equal({ srid: 0, type: "geometry" }, col.limit)
+    if klass.connection.supports_index_sort_order?
+      assert_equal({ srid: 4326, type: "geometry" },
+                   col.limit)
+    else
+      assert_equal({ srid: 0, type: "geometry" }, col.limit)
+    end
   end
 
   def test_create_polygon_with_options
     klass.connection.create_table(:spatial_models, force: true) do |t|
-      t.column "region", :polygon, has_m: true, srid: 3785
+      t.column "region", :polygon, has_m: true, srid: 3857
     end
     klass.reset_column_information
     col = klass.columns.last
@@ -216,9 +222,25 @@ class DDLTest < ActiveSupport::TestCase
     assert_equal false, col.geographic?
     assert_equal false, col.has_z?
     assert_equal false, col.has_m?
-    assert_equal 0, col.srid
-    assert_equal({ type: "polygon", srid: 0 }, col.limit)
+    klass.connection.supports_index_sort_order? ? assert_equal(3857, col.srid) : assert_equal(0, col.srid)
+    if klass.connection.supports_index_sort_order?
+      assert_equal({ type: "polygon", srid: 3857 },
+                   col.limit)
+    else
+      assert_equal({ type: "polygon", srid: 0 }, col.limit)
+    end
     klass.connection.drop_table(:spatial_models)
+  end
+
+  def test_no_query_spatial_column_info
+    klass.connection.create_table(:spatial_models, force: true) do |t|
+      t.string "name"
+    end
+    klass.reset_column_information
+    # `all` queries column info from the database - it should not be called when klass.columns is called
+    ActiveRecord::ConnectionAdapters::Mysql2Rgeo::SpatialColumnInfo.any_instance.expects(:all).never
+    # first column is id, second is name
+    refute klass.columns[1].spatial?
   end
 
   # Ensure that null contraints info is getting captured like the
@@ -260,7 +282,7 @@ class DDLTest < ActiveSupport::TestCase
     end
     klass.reset_column_information
     col = klass.columns.last
-    assert_equal 0, col.srid
+    klass.connection.supports_index_sort_order? ? assert_equal(4326, col.srid) : assert_equal(0, col.srid)
   end
 
   def test_non_spatial_column_limits
@@ -274,11 +296,11 @@ class DDLTest < ActiveSupport::TestCase
 
   def test_column_comments
     klass.connection.create_table(:spatial_models, force: true) do |t|
-      t.string :sample_comment, comment: 'Comment test'
+      t.string :sample_comment, comment: "Comment test"
     end
     klass.reset_column_information
     col = klass.columns.last
-    assert_equal 'Comment test', col.comment
+    assert_equal "Comment test", col.comment
   end
 
   private

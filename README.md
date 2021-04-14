@@ -180,7 +180,7 @@ You can create a column either by invoking `column` or invoking the name of the 
 The third column, "path", has a specific geometric type, `line_string`. It
 also specifies an SRID (spatial reference ID) that indicates which coordinate
 system it expects the data to be in. The column now has a "constraint" on it;
-it will accept only LineString data, and only data whose SRID is 3785.
+it will accept only LineString data, and only data whose SRID is 3857.
 
 The fourth column, "lonlat", has the `point` type, and accepts only Point
 data. Furthermore, it declares the column as "geographic", which means it

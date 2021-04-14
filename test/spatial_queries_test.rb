@@ -17,10 +17,10 @@ class SpatialQueriesTest < ActiveSupport::TestCase
     create_model
     obj = SpatialModel.create!(latlon: factory.point(1, 2))
     id = obj.id
-    obj2 = SpatialModel.find_by(latlon: "POINT(1 2)")
+    obj2 = SpatialModel.find_by(latlon: "SRID=3857;POINT(1 2)")
     refute_nil(obj2)
     assert_equal(id, obj2.id)
-    obj3 = SpatialModel.find_by(latlon: "POINT(2 2)")
+    obj3 = SpatialModel.find_by(latlon: "SRID=3857;POINT(2 2)")
     assert_nil(obj3)
   end
 
@@ -28,10 +28,10 @@ class SpatialQueriesTest < ActiveSupport::TestCase
     create_model
     obj = SpatialModel.create!(latlon: factory.point(1, 2))
     id = obj.id
-    obj2 = SpatialModel.find_by(SpatialModel.arel_table[:latlon].st_distance("POINT(2 3)").lt(2))
+    obj2 = SpatialModel.find_by(SpatialModel.arel_table[:latlon].st_distance("SRID=3857;POINT(2 3)").lt(2))
     refute_nil(obj2)
     assert_equal(id, obj2.id)
-    obj3 = SpatialModel.find_by(SpatialModel.arel_table[:latlon].st_distance("POINT(2 3)").gt(2))
+    obj3 = SpatialModel.find_by(SpatialModel.arel_table[:latlon].st_distance("SRID=3857;POINT(2 3)").gt(2))
     assert_nil(obj3)
   end
 
@@ -39,10 +39,10 @@ class SpatialQueriesTest < ActiveSupport::TestCase
     create_model
     obj = SpatialModel.create!(latlon: factory.point(1, 2))
     id = obj.id
-    obj2 = SpatialModel.find_by(::Arel.spatial("POINT(2 3)").st_distance(SpatialModel.arel_table[:latlon]).lt(2))
+    obj2 = SpatialModel.find_by(::Arel.spatial("SRID=3857;POINT(2 3)").st_distance(SpatialModel.arel_table[:latlon]).lt(2))
     refute_nil(obj2)
     assert_equal(id, obj2.id)
-    obj3 = SpatialModel.find_by(::Arel.spatial("POINT(2 3)").st_distance(SpatialModel.arel_table[:latlon]).gt(2))
+    obj3 = SpatialModel.find_by(::Arel.spatial("SRID=3857;POINT(2 3)").st_distance(SpatialModel.arel_table[:latlon]).gt(2))
     assert_nil(obj3)
   end
 
@@ -62,11 +62,10 @@ class SpatialQueriesTest < ActiveSupport::TestCase
   private
 
   def create_model
-    #ActiveRecord::Migration.drop_table(:spatial_models)
-    SpatialModel.connection.drop_table(:spatial_models) if SpatialModel.connection.table_exists?(:spatial_models)
-    SpatialModel.connection.create_table(:spatial_models) do |t|
-      t.column "latlon", :point, srid: 3785
-      t.column "path", :line_string, srid: 3785
+    SpatialModel.connection.create_table(:spatial_models, force: true) do |t|
+      t.column "latlon", :point, srid: 3857
+      t.column "points", :multi_point, srid: 3857
+      t.column "path", :line_string, srid: 3857
     end
     SpatialModel.reset_column_information
   end

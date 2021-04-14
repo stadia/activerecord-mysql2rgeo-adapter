@@ -4,10 +4,13 @@ module ActiveRecord # :nodoc:
   module ConnectionAdapters # :nodoc:
     module Mysql2Rgeo # :nodoc:
       class SpatialColumn < ConnectionAdapters::MySQL::Column # :nodoc:
-
-        def initialize(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, **)
-          @geometric_type = nil
-          if sql_type =~ /geometry|point|linestring|polygon/i
+        def initialize(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, spatial: nil, **)
+          @sql_type_metadata = sql_type_metadata
+          if spatial
+            # This case comes from an entry in the geometry_columns table
+            set_geometric_type_from_name(spatial[:type])
+            @srid = spatial[:srid].to_i
+          elsif sql_type =~ /geometry|point|linestring|polygon/i
             build_from_sql_type(sql_type_metadata.sql_type)
           elsif sql_type_metadata.sql_type =~ /geometry|point|linestring|polygon/i
             # A geometry column with no geometry_columns entry.
@@ -17,8 +20,7 @@ module ActiveRecord # :nodoc:
           super(name, default, sql_type_metadata, null, default_function, collation: collation, comment: comment)
           if spatial?
             if @srid
-              @limit = { type: @geometric_type.type_name.underscore }
-              @limit[:srid] = @srid if @srid
+              @limit = { type: @geometric_type.type_name.underscore, srid: @srid }
             end
           end
         end
@@ -37,9 +39,9 @@ module ActiveRecord # :nodoc:
           false
         end
 
-        alias :geographic? :geographic
-        alias :has_z? :has_z
-        alias :has_m? :has_m
+        alias geographic? geographic
+        alias has_z? has_z
+        alias has_m? has_m
 
         def limit
           if spatial?

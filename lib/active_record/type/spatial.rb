@@ -40,7 +40,9 @@ module ActiveRecord
       end
 
       def spatial_factory
-        @spatial_factory ||=
+        @spatial_factories ||= {}
+
+        @spatial_factories[@srid] ||=
           RGeo::ActiveRecord::SpatialFactoryStore.instance.factory(
             geo_type: @geo_type,
             sql_type: @sql_type,

@@ -124,7 +124,7 @@ class BasicTest < ActiveSupport::TestCase
     point = object.latlon
     # assert_equal 47, point.latitude
     object.shape = point
-    assert_equal true, RGeo::Geos.is_geos?(object.shape)
+    assert_equal true, RGeo::Geos.geos?(object.shape)
 
     spatial_factory_store.clear
   end

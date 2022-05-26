@@ -2,11 +2,10 @@ dist: xenial
 language: ruby
 sudo: false
 rvm:
-  - 2.6
-  - 2.5
+  - 2.7
   - jruby-9.2.6.0
 gemfile:
-  - gemfiles/ar60.gemfile
+  - gemfiles/ar70.gemfile
 matrix:
   allow_failures:
     - rvm: jruby-9.2.6.0

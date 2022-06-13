@@ -4,6 +4,7 @@ sudo: false
 rvm:
   - 2.7
   - jruby-9.2.6.0
+  - 3.0
 gemfile:
   - gemfiles/ar70.gemfile
 matrix:

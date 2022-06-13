@@ -80,6 +80,50 @@ module ActiveRecord
         DEFAULT_SRID
       end
 
+      def native_database_types
+        # Add spatial types
+        # Reference: https://dev.mysql.com/doc/refman/5.6/en/spatial-type-overview.html
+        super.merge(
+          geometry:            { name: "geometry" },
+          geometrycollection:  { name: "geometrycollection" },
+          linestring:          { name: "linestring" },
+          multi_line_string:   { name: "multilinestring" },
+          multi_point:         { name: "multipoint" },
+          multi_polygon:       { name: "multipolygon" },
+          spatial:             { name: "geometry" },
+          point:               { name: "point" },
+          polygon:             { name: "polygon" }
+        )
+      end
+
+      class << self
+
+        private
+          def initialize_type_map(m)
+            super
+
+            %w[
+              geometry
+              geometrycollection
+              point
+              linestring
+              polygon
+              multipoint
+              multilinestring
+              multipolygon
+            ].each do |geo_type|
+              m.register_type(geo_type) do |sql_type|
+                Type::Spatial.new(sql_type.to_s)
+              end
+            end
+          end
+      end
+
+      TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
+      TYPE_MAP_WITH_BOOLEAN = Type::TypeMap.new(TYPE_MAP).tap do |m|
+        m.register_type %r(^tinyint\(1\))i, Type::Boolean.new
+      end
+
       def supports_spatial?
         !mariadb? && version >= "5.7.6"
       end
@@ -92,6 +136,11 @@ module ActiveRecord
           super
         end
       end
+
+      private
+        def type_map
+          emulate_booleans ? TYPE_MAP_WITH_BOOLEAN : TYPE_MAP
+        end
     end
   end
 end

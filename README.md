@@ -1,8 +1,8 @@
 # Mysql2Rgeo ActiveRecord Adapter
 
 [![Gem Version](https://badge.fury.io/rb/activerecord-mysql2rgeo-adapter.svg)](https://badge.fury.io/rb/activerecord-mysql2rgeo-adapter)
-![Test status](https://github.com/stadia/activerecord-mysql2rgeo-adapter/actions/workflows/tests.yml/badge.svg?branch=master)
-![Codeql](https://github.com/stadia/activerecord-mysql2rgeo-adapter/actions/workflows/codeql-analysis.yml/badge.svg?branch=master)
+![Test status](https://github.com/stadia/activerecord-mysql2rgeo-adapter/actions/workflows/tests.yml/badge.svg?branch=main)
+![Codeql](https://github.com/stadia/activerecord-mysql2rgeo-adapter/actions/workflows/codeql-analysis.yml/badge.svg?branch=main)
 [![Code Climate](https://codeclimate.com/github/stadia/activerecord-mysql2rgeo-adapter.png)](https://codeclimate.com/github/stadia/activerecord-mysql2rgeo-adapter)
 
 The activerecord-mysql2rgeo-adapter provides access to features
@@ -368,4 +368,4 @@ Support is also available on the rgeo-users google group at http://groups.google
 
 Copyright Yongdae Hwang
 
-https://github.com/stadia/activerecord-mysql2rgeo-adapter/blob/master/LICENSE.txt
+https://github.com/stadia/activerecord-mysql2rgeo-adapter/blob/main/LICENSE.txt

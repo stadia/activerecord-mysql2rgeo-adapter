@@ -46,7 +46,7 @@ class BasicTest < ActiveSupport::TestCase
     obj2 = SpatialModel.find(id)
     assert_equal factory.point(1.0, 2.0), obj2.latlon
     assert_equal 3857, obj2.latlon.srid
-    # assert_equal true, RGeo::Geos.is_geos?(obj2.latlon)
+    assert_equal true, RGeo::Geos.geos?(obj2.latlon)
   end
 
   def test_save_and_load_geographic_point
@@ -58,7 +58,7 @@ class BasicTest < ActiveSupport::TestCase
     obj2 = SpatialModel.find(id)
     # assert_equal geographic_factory.point(1.0, 2.0), obj2.latlon_geo
     assert_equal 4326, obj2.latlon_geo.srid
-    # assert_equal false, RGeo::Geos.is_geos?(obj2.latlon_geo)
+    # assert_equal false, RGeo::Geos.geos?(obj2.latlon_geo)
   end
 
   def test_save_and_load_point_from_wkt
@@ -124,7 +124,7 @@ class BasicTest < ActiveSupport::TestCase
     point = object.latlon
     # assert_equal 47, point.latitude
     object.shape = point
-    assert_equal true, RGeo::Geos.is_geos?(object.shape)
+    assert_equal true, RGeo::Geos.geos?(object.shape)
 
     spatial_factory_store.clear
   end

@@ -47,7 +47,7 @@ module ActiveRecord
             geo_type: @geo_type,
             sql_type: @sql_type,
             srid: @srid
-          )
+        )
       end
 
       def klass

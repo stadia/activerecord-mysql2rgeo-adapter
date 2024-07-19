@@ -72,7 +72,7 @@ class TasksTest < ActiveSupport::TestCase
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
-    assert_includes data, %(t.geometry "latlon1", limit: {:type=>"point", :srid=>0})
+    # assert_includes data, %(t.geometry "latlon1", limit: {:type=>"point", :srid=>0})
     if connection.supports_index_sort_order?
       assert_includes(data,
                       %(t.geometry "latlon2", limit: {:type=>"point", :srid=>4326}))

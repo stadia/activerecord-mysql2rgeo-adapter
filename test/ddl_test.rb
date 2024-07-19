@@ -279,7 +279,7 @@ class DDLTest < ActiveSupport::TestCase
     end
     klass.reset_column_information
     col = klass.columns.last
-    klass.connection.supports_index_sort_order? ? assert_equal(4326, col.srid) : assert_equal(0, col.srid)
+    klass.connection.database_version > "8.0.0" ? assert_equal(4326, col.srid) : assert_equal(0, col.srid)
   end
 
   def test_non_spatial_column_limits

@@ -44,7 +44,7 @@ module ActiveRecord
 
         @spatial_factories[@srid] ||=
           RGeo::ActiveRecord::SpatialFactoryStore.instance.factory(
-            geo_type: @geo_type,
+            # geo_type: @geo_type,
             sql_type: @sql_type,
             srid: @srid
         )

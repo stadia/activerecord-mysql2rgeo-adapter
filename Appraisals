@@ -1,3 +1,3 @@
-appraise "ar70" do
-  gem "activerecord", "~> 7.0.0"
+appraise "ar71" do
+  gem "activerecord", "~> 7.1.0"
 end

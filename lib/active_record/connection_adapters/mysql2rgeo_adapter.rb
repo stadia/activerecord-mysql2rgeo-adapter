@@ -66,7 +66,7 @@ module ActiveRecord
       # http://postgis.17.x6.nabble.com/Default-SRID-td5001115.html
       DEFAULT_SRID = 0
 
-      def initialize(connection, logger, connection_options, config)
+      def initialize(...) # connection, logger, connection_options, config
         super
 
         @visitor = Arel::Visitors::Mysql2Rgeo.new(self)
@@ -135,6 +135,10 @@ module ActiveRecord
         else
           super
         end
+      end
+
+      def with_connection
+        yield self
       end
 
       private

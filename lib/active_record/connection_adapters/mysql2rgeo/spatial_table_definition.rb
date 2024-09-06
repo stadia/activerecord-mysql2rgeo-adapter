@@ -22,6 +22,10 @@ module ActiveRecord # :nodoc:
 
           column
         end
+
+        def valid_column_definition_options
+          super + %i[geographic has_m spatial_type srid]
+        end
       end
 
       module ColumnDefinitionUtils

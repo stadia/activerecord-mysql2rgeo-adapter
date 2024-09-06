@@ -6,7 +6,7 @@ rvm:
   - jruby-9.2.6.0
   - 3.0
 gemfile:
-  - gemfiles/ar71.gemfile
+  - gemfiles/ar72.gemfile
 matrix:
   allow_failures:
     - rvm: jruby-9.2.6.0

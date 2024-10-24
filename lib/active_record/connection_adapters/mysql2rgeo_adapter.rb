@@ -131,7 +131,7 @@ module ActiveRecord
       def quote(value)
         dbval = value.try(:value_for_database) || value
         if RGeo::Feature::Geometry.check_type(dbval)
-          "ST_GeomFromWKB(0x#{RGeo::WKRep::WKBGenerator.new(hex_format: true, little_endian: true).generate(dbval)},#{dbval.srid})"
+          "ST_GeomFromWKB(0x#{RGeo::WKRep::WKBGenerator.new(hex_format: true, little_endian: true).generate(dbval)},#{dbval.srid},'axis-order=long-lat')"
         else
           super
         end

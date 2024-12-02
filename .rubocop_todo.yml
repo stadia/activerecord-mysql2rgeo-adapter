@@ -13,7 +13,7 @@
 Bundler/OrderedGems:
   Exclude:
     - 'Gemfile'
-    - 'gemfiles/ar72.gemfile'
+    - 'gemfiles/ar80.gemfile'
 
 # Offense count: 2
 # Cop supports --auto-correct.

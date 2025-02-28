@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "activerecord", "~> 7.1.0"
   spec.add_dependency "rgeo-activerecord", "~> 7.0.0"
-  spec.add_dependency "rgeo", "~> 2.0"
+  spec.add_dependency "rgeo", "~> 3.0"
 
   spec.add_development_dependency "rake", "~> 12.0"
   spec.add_development_dependency "minitest", "~> 5.4"

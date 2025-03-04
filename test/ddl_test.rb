@@ -198,7 +198,7 @@ class DDLTest < ActiveSupport::TestCase
 
   def test_create_geometry_using_shortcut_with_srid
     klass.connection.create_table(:spatial_models, force: true) do |t|
-      t.geometry "latlon100", srid: 4326
+      t.geometry "latlon", srid: 4326
     end
     klass.reset_column_information
     col = klass.columns.last

@@ -27,12 +27,7 @@ module Arel # :nodoc:
       end
 
       def visit_String(node, collector)
-        node, srid = Mysql2Rgeo.parse_node(node)
-        collector << if srid == 0
-                       "#{st_func('ST_WKTToSQL')}(#{quote(node)})"
-                     else
-                       "#{st_func('ST_WKTToSQL')}(#{quote(node)}, #{srid}, 'axis-order=long-lat')"
-                     end
+        collector << string_query(node)
       end
 
       def visit_RGeo_ActiveRecord_SpatialNamedFunction(node, collector)
@@ -42,12 +37,7 @@ module Arel # :nodoc:
       def visit_in_spatial_context(node, collector)
         case node
         when String
-          node, srid = Mysql2Rgeo.parse_node(node)
-          collector << if srid == 0
-                         "#{st_func('ST_WKTToSQL')}(#{quote(node)})"
-                       else
-                         "#{st_func('ST_WKTToSQL')}(#{quote(node)}, #{srid}, 'axis-order=long-lat')"
-                       end
+          collector << string_query(node)
         when RGeo::Feature::Instance
           collector << visit_RGeo_Feature_Instance(node, collector)
         when RGeo::Cartesian::BoundingBox
@@ -75,6 +65,15 @@ module Arel # :nodoc:
           value = node
         end
         [value, srid]
+      end
+
+      private
+      def string_query(node)
+        node, srid = Mysql2Rgeo.parse_node(node)
+        query = "#{st_func('ST_WKTToSQL')}(#{quote(node)}"
+        query += ", #{srid}" if srid != 0
+        query += ", 'axis-order=long-lat'" if srid != 0 && (!@connection.mariadb? && @connection.database_version >= "8.0.0")
+        "#{query})"
       end
     end
   end

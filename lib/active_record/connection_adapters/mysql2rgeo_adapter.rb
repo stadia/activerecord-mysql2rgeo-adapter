@@ -125,7 +125,7 @@ module ActiveRecord
       end
 
       def supports_spatial?
-        !mariadb? && version >= "5.7.6"
+        !mariadb? && database_version >= "5.7.6"
       end
 
       def quote(value)

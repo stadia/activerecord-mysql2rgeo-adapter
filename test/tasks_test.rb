@@ -58,13 +58,8 @@ class TasksTest < ActiveSupport::TestCase
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
-    if connection.database_version >= "8.0.0"
-      assert_includes data, "t.geometry \"object1\", limit: {type: \"geometry\", srid: #{connection.default_srid}"
-      assert_includes data, "t.geometry \"object2\", limit: {type: \"geometry\", srid: #{connection.default_srid}"
-    else
-      assert_includes data, "t.geometry \"object1\", limit: {:type=>\"geometry\", :srid=>#{connection.default_srid}"
-      assert_includes data, "t.geometry \"object2\", limit: {:type=>\"geometry\", :srid=>#{connection.default_srid}"
-    end
+    assert_includes data, "t.geometry \"object1\", limit: {:type=>\"geometry\", :srid=>#{connection.default_srid}"
+    assert_includes data, "t.geometry \"object2\", limit: {:type=>\"geometry\", :srid=>#{connection.default_srid}"
   end
 
   def test_basic_geography_schema_dump
@@ -97,11 +92,7 @@ class TasksTest < ActiveSupport::TestCase
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
-    if connection.database_version >= "8.0.0"
-      assert_includes data, %(t.geometry "latlon", limit: {type: "point", srid: 0}, null: false)
-    else
-      assert_includes data, %(t.geometry "latlon", limit: {:type=>"point", :srid=>0}, null: false)
-    end
+    assert_includes data, %(t.geometry "latlon", limit: {:type=>"point", :srid=>0}, null: false)
     assert_includes data, %(t.index ["latlon"], name: "index_spatial_test_on_latlon", type: :spatial)
   end
 

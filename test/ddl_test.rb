@@ -202,6 +202,7 @@ class DDLTest < ActiveSupport::TestCase
     end
     klass.reset_column_information
     col = klass.columns.last
+    puts col.limit
     assert_equal RGeo::Feature::Geometry, col.geometric_type
     if klass.connection.supports_index_sort_order?
       assert_equal({ type: "geometry", srid: 4326 }, col.limit)

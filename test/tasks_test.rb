@@ -58,8 +58,13 @@ class TasksTest < ActiveSupport::TestCase
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
-    assert_includes data, "t.geometry \"object1\", limit: {type: \"geometry\", srid: #{connection.default_srid}"
-    assert_includes data, "t.geometry \"object2\", limit: {type: \"geometry\", srid: #{connection.default_srid}"
+    if connection.database_version >= "8.0.0"
+      assert_includes data, "t.geometry \"object1\", limit: {type: \"geometry\", srid: #{connection.default_srid}"
+      assert_includes data, "t.geometry \"object2\", limit: {type: \"geometry\", srid: #{connection.default_srid}"
+    else
+      assert_includes data, "t.geometry \"object1\", limit: {:type=>\"geometry\", :srid=>#{connection.default_srid}"
+      assert_includes data, "t.geometry \"object2\", limit: {:type=>\"geometry\", :srid=>#{connection.default_srid}"
+    end
   end
 
   def test_basic_geography_schema_dump
@@ -72,13 +77,24 @@ class TasksTest < ActiveSupport::TestCase
       ActiveRecord::SchemaDumper.dump(connection, file)
     end
     data = File.read(tmp_sql_filename)
-    assert_includes data, %(t.geometry "latlon1", limit: {type: "point", srid: 0})
-    if connection.supports_index_sort_order?
-      assert_includes(data,
-                      %(t.geometry "latlon2", limit: {type: "point", srid: 4326}))
+    if connection.database_version >= "8.0.0"
+      assert_includes data, %(t.geometry "latlon1", limit: {type: "point", srid: 0})
+      if connection.supports_index_sort_order?
+        assert_includes(data,
+                        %(t.geometry "latlon2", limit: {type: "point", srid: 4326}))
+      else
+        assert_includes(data,
+                        %(t.geometry "latlon2", limit: {type: "point", srid: 0}))
+      end
     else
-      assert_includes(data,
-                      %(t.geometry "latlon2", limit: {type: "point", srid: 0}))
+      assert_includes data, %(t.geometry "latlon1", limit: {:type=>"point", :srid=>0})
+      if connection.supports_index_sort_order?
+        assert_includes(data,
+                        %(t.geometry "latlon2", limit: {:type=>"point", :srid=>4326}))
+      else
+        assert_includes(data,
+                        %(t.geometry "latlon2", limit: {:type=>"point", :srid=>0}))
+      end
     end
   end
 

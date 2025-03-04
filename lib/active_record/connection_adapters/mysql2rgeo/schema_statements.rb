@@ -7,7 +7,7 @@ module ActiveRecord
         # super: https://github.com/rails/rails/blob/master/activerecord/lib/active_record/connection_adapters/mysql/schema_statements.rb
 
         # override
-        def indexes(table_name) #:nodoc:
+        def indexes(table_name) # :nodoc:
           indexes = super
           # HACK(aleks, 06/15/18): MySQL 5 does not support prefix lengths for spatial indexes
           # https://dev.mysql.com/doc/refman/5.6/en/create-index.html
@@ -19,7 +19,7 @@ module ActiveRecord
 
         # override
         def type_to_sql(type, limit: nil, precision: nil, scale: nil, unsigned: nil, **) # :nodoc:
-          if (info = RGeo::ActiveRecord.geometric_type_from_name(type.to_s.delete("_")))
+          if RGeo::ActiveRecord.geometric_type_from_name(type.to_s.delete("_"))
             type = limit[:type] || type if limit.is_a?(::Hash)
             type = type.to_s.delete("_").upcase
           end

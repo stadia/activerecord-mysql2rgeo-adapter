@@ -9,7 +9,7 @@ module Arel # :nodoc:
                         MySQL
                       end
 
-    class Mysql2Rgeo < MySQLSuperclass  # :nodoc:
+    class Mysql2Rgeo < MySQLSuperclass # :nodoc:
       include RGeo::ActiveRecord::SpatialToSql
 
       if ::Arel::Visitors.const_defined?(:BindVisitor)
@@ -31,7 +31,7 @@ module Arel # :nodoc:
         collector << if srid == 0
                        "#{st_func('ST_WKTToSQL')}(#{quote(node)})"
                      else
-                       "#{st_func('ST_WKTToSQL')}(#{quote(node)}, #{srid})"
+                       "#{st_func('ST_WKTToSQL')}(#{quote(node)}, #{srid}, 'axis-order=long-lat')"
                      end
       end
 
@@ -46,7 +46,7 @@ module Arel # :nodoc:
           collector << if srid == 0
                          "#{st_func('ST_WKTToSQL')}(#{quote(node)})"
                        else
-                         "#{st_func('ST_WKTToSQL')}(#{quote(node)}, #{srid})"
+                         "#{st_func('ST_WKTToSQL')}(#{quote(node)}, #{srid}, 'axis-order=long-lat')"
                        end
         when RGeo::Feature::Instance
           collector << visit_RGeo_Feature_Instance(node, collector)

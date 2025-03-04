@@ -29,7 +29,7 @@ module ActiveRecord
       config = config.symbolize_keys
       config[:flags] ||= 0
 
-      if config[:flags].kind_of? Array
+      if config[:flags].is_a? Array
         config[:flags].push "FOUND_ROWS"
       else
         config[:flags] |= Mysql2::Client::FOUND_ROWS
@@ -39,7 +39,7 @@ module ActiveRecord
         ConnectionAdapters::Mysql2RgeoAdapter.new_client(config),
         logger,
         nil,
-        config,
+        config
       )
     end
   end
@@ -97,31 +97,31 @@ module ActiveRecord
       end
 
       class << self
-
         private
-          def initialize_type_map(m)
-            super
 
-            %w[
-              geometry
-              geometrycollection
-              point
-              linestring
-              polygon
-              multipoint
-              multilinestring
-              multipolygon
-            ].each do |geo_type|
-              m.register_type(geo_type) do |sql_type|
-                Type::Spatial.new(sql_type.to_s)
-              end
+        def initialize_type_map(m)
+          super
+
+          %w[
+            geometry
+            geometrycollection
+            point
+            linestring
+            polygon
+            multipoint
+            multilinestring
+            multipolygon
+          ].each do |geo_type|
+            m.register_type(geo_type) do |sql_type|
+              Type::Spatial.new(sql_type.to_s)
             end
           end
+        end
       end
 
       TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
       TYPE_MAP_WITH_BOOLEAN = Type::TypeMap.new(TYPE_MAP).tap do |m|
-        m.register_type %r(^tinyint\(1\))i, Type::Boolean.new
+        m.register_type(/^tinyint\(1\)/i, Type::Boolean.new)
       end
 
       def supports_spatial?
@@ -131,7 +131,8 @@ module ActiveRecord
       def quote(value)
         dbval = value.try(:value_for_database) || value
         if RGeo::Feature::Geometry.check_type(dbval)
-          "ST_GeomFromWKB(0x#{RGeo::WKRep::WKBGenerator.new(hex_format: true, little_endian: true).generate(dbval)},#{dbval.srid})"
+          "ST_GeomFromWKB(0x#{RGeo::WKRep::WKBGenerator.new(hex_format: true,
+                                                            little_endian: true).generate(dbval)},#{dbval.srid})"
         else
           super
         end
@@ -142,9 +143,10 @@ module ActiveRecord
       end
 
       private
-        def type_map
-          emulate_booleans ? TYPE_MAP_WITH_BOOLEAN : TYPE_MAP
-        end
+
+      def type_map
+        emulate_booleans ? TYPE_MAP_WITH_BOOLEAN : TYPE_MAP
+      end
     end
   end
 end

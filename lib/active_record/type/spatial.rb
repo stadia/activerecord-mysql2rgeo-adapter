@@ -47,7 +47,7 @@ module ActiveRecord
             geo_type: @geo_type,
             sql_type: @sql_type,
             srid: @srid
-        )
+          )
       end
 
       def klass
@@ -80,7 +80,7 @@ module ActiveRecord
       def cast_value(value)
         return if value.nil?
 
-        ::String === value ? parse_wkt(value) : value
+        value.is_a?(::String) ? parse_wkt(value) : value
       end
 
       # convert WKT string into RGeo object
@@ -88,11 +88,11 @@ module ActiveRecord
         marker = string[4, 1]
         if ["\x00", "\x01"].include?(marker)
           @srid = string[0, 4].unpack1(marker == "\x01" ? "V" : "N")
-          RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: @srid).parse(string[4..-1])
+          RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: @srid).parse(string[4..])
         elsif string[0, 10] =~ /[0-9a-fA-F]{8}0[01]/
           @srid = string[0, 8].to_i(16)
-          @srid = [@srid].pack("V").unpack("N").first if string[9, 1] == "1"
-          RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: srid).parse(string[8..-1])
+          @srid = [@srid].pack("V").unpack1("N") if string[9, 1] == "1"
+          RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: srid).parse(string[8..])
         else
           string, @srid = Arel::Visitors::Mysql2Rgeo.parse_node(string)
           RGeo::WKRep::WKTParser.new(spatial_factory, support_ewkt: true, default_srid: @srid).parse(string)

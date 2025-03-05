@@ -8,8 +8,18 @@ Set up your test database:
 
 ```sh
 mysql --user root
+
+# MySQL 5.6, 5.7
 grant all on mysql2rgeo_adapter_test.* to mysql2rgeo_adapter_test@localhost identified by 'mysql2rgeo_adapter_test';
 grant all on mysql2rgeo_tasks_test.* to mysql2rgeo_adapter_test@localhost identified by 'mysql2rgeo_adapter_test';
+create database mysql2rgeo_adapter_test;
+create database mysql2rgeo_tasks_test;
+
+# MySQL 8.0+
+create user mysql2rgeo_adapter_test@localhost;
+grant process on *.* to mysql2rgeo_adapter_test@localhost;
+grant all on mysql2rgeo_adapter_test.* to mysql2rgeo_adapter_test@localhost;
+grant all on mysql2rgeo_tasks_test.* to mysql2rgeo_adapter_test@localhost;
 create database mysql2rgeo_adapter_test;
 create database mysql2rgeo_tasks_test;
 ```

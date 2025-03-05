@@ -36,54 +36,23 @@ Gemfile:
 gem 'activerecord-mysql2rgeo-adapter'
 ```
 
-Gemfile for JRuby:
-
-```ruby
-gem 'activerecord-mysql2rgeo-adapter'
-gem 'jdbc-mysql', platform: :jruby
-gem 'activerecord-jdbc-adapter', platform: :jruby
-gem 'ffi-geos'
-```
-
-_JRuby support for Rails 4.0 and 4.1 was added in version 2.2.0_
-
-#### Version 7.x supports ActiveRecord 7.0+
+#### Version 7.2 supports ActiveRecord 7.2+
 
 Requirements:
 
 ```
-ActiveRecord 7.0+
+ActiveRecord 7.2+
+Ruby 3.1+ (no JRuby support yet)
+PostGIS 2.0+
+```
+
+#### Version 7.1 supports ActiveRecord 7.1+
+
+Requirements:
+
+```
+ActiveRecord 7.1+
 Ruby 2.7+ (no JRuby support yet)
-PostGIS 2.0+
-```
-
-#### Version 6.x supports ActiveRecord 6.0+
-
-Requirements:
-
-```
-ActiveRecord 6.0+
-Ruby 2.5+ (no JRuby support yet)
-PostGIS 2.0+
-```
-
-#### Version 5.x supports ActiveRecord 5.1+
-
-Requirements:
-
-```
-ActiveRecord 5.1+
-Ruby 2.2.2+ (no JRuby support yet)
-PostGIS 2.0+
-```
-
-#### Version 4.x supports ActiveRecord 5.0+
-
-Requirements:
-
-```
-ActiveRecord 5.0+
-Ruby 2.2.2+, JRuby
 PostGIS 2.0+
 ```
 

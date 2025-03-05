@@ -40,9 +40,9 @@ module ActiveRecord
 
         # override
         def new_column_from_field(table_name, field, _definitions)
-          field[:Type] = 'geometrycollection' if field[:Type] == 'geomcollection'
-          type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-          default, default_function = field[:Default], nil
+          field["Type"] = 'geometrycollection' if field["Type"] == 'geomcollection'
+          type_metadata = fetch_type_metadata(field["Type"], field["Extra"])
+          default, default_function = field["Default"], nil
 
           if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
             default, default_function = nil, default
@@ -52,17 +52,17 @@ module ActiveRecord
           end
 
           # {:dimension=>2, :has_m=>false, :has_z=>false, :name=>"latlon", :srid=>0, :type=>"GEOMETRY"}
-          spatial = spatial_column_info(table_name).get(field[:Field], type_metadata.sql_type)
+          spatial = spatial_column_info(table_name).get(field["Field"], type_metadata.sql_type)
           spatial[:type] = 'geometrycollection' if spatial && spatial[:type] == 'geomcollection'
 
           SpatialColumn.new(
-            field[:Field],
+            field["Field"],
             default,
             type_metadata,
-            field[:Null] == "YES",
+            field["Null"] == "YES",
             default_function,
-            collation: field[:Collation],
-            comment: field[:Comment].presence,
+            collation: field["Collation"],
+            comment: field["Comment"].presence,
             spatial: spatial
           )
         end

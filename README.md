@@ -28,7 +28,8 @@ RGeo objects can be embedded in where clauses.
 
 ## Install
 
-The adapter requires Mysql 5.6+.
+The adapter requires MySQL. See below for the specific version of MySQL that
+the different versions of this gem require.
 
 Gemfile:
 
@@ -36,24 +37,34 @@ Gemfile:
 gem 'activerecord-mysql2rgeo-adapter'
 ```
 
-#### Version 7.2 supports ActiveRecord 7.2+
+#### Version 8.0
 
 Requirements:
 
 ```
-ActiveRecord 7.2+
+ActiveRecord 7.2
 Ruby 3.1+ (no JRuby support yet)
-PostGIS 2.0+
+MySQL 8.0+
 ```
 
-#### Version 7.1 supports ActiveRecord 7.1+
+#### Version 7.2
 
 Requirements:
 
 ```
-ActiveRecord 7.1+
+ActiveRecord 7.2
+Ruby 3.1+ (no JRuby support yet)
+MySQL 5.6, 5.7
+```
+
+#### Version 7.1
+
+Requirements:
+
+```
+ActiveRecord 7.1
 Ruby 2.7+ (no JRuby support yet)
-PostGIS 2.0+
+MySQL 5.6, 5.7
 ```
 
 ##### database.yml

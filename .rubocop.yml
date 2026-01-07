@@ -3,6 +3,8 @@ inherit_from: .rubocop_todo.yml
 AllCops:
   TargetRubyVersion: 3.0
   DisplayCopNames: true
+  SuggestExtensions: false
+  NewCops: enable
 
 Layout/ParameterAlignment:
   Enabled: false
@@ -10,7 +12,7 @@ Layout/ParameterAlignment:
 Layout/MultilineOperationIndentation:
   Enabled: false
 
-Metrics/LineLength:
+Layout/LineLength:
   Max: 130
 
 Style/NumericPredicate:
@@ -33,7 +35,6 @@ Style/ZeroLengthPredicate:
 
 Style/FrozenStringLiteralComment:
   Exclude:
-    - Appraisals
     - Gemfile
     - Rakefile
     - activerecord-postgis-adapter.gemspec

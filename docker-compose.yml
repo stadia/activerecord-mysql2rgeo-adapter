@@ -1,11 +1,10 @@
-version: '3'
+version: "3"
 services:
   db:
-    image: postgis/postgis:11-3.0
+    image: mysql:8.0
     ports:
-      - 5432:5432
+      - 3306:3306
     environment:
-      POSTGRES_HOST_AUTH_METHOD: trust
-      POSTGRES_USER: postgres
-      POSTGRES_DB: postgis_adapter_test
-      POSTGRES_PASSWORD: postgres
+      MYSQL_USER: mysql
+      MYSQL_DATABASE: rgeo_adapter_test
+      MYSQL_PASSWORD: mysqlpass

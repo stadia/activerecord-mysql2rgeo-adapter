@@ -1,9 +1,9 @@
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in activerecord-postgis-adapter.gemspec
+# Specify your gem's dependencies in activerecord-mysql2rgeo-adapter.gemspec
 gemspec
 
-gem "pg", "~> 1.0", platform: :ruby
+gem "mysql2", "~> 0.5.0", platform: :ruby
 gem "byebug" if ENV["BYEBUG"]
 
 def activerecord_version
@@ -16,7 +16,7 @@ def activerecord_version
   # read gemspec to get activerecord version spec
   # pull all activerecord versions from rubygems
   # find the newest version that matches the version from our gemspec
-  gs = Bundler.load_gemspec("activerecord-postgis-adapter.gemspec")
+  gs = Bundler.load_gemspec("activerecord-mysql2rgeo-adapter.gemspec")
   ar_dep = gs.dependencies.find { |d| d.name == "activerecord" }
 
   uri = URI("https://rubygems.org/api/v1/versions/activerecord.yaml")

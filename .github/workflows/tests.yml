@@ -26,18 +26,12 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgis:
-        image: postgis/postgis:${{matrix.pg}}
+        image: mysql:${{matrix.mysql}}
         ports:
-          - 5432:5432
+          - 3306:3306
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        options: >-
-          --name=postgres
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          MYSQL_USER: mysql
+          MYSQL_PASSWORD: mysqlpass
     env:
       BUNDLE_GEMFILE: ${{matrix.gemfile}}
     strategy:
@@ -46,7 +40,7 @@ jobs:
         # https://ruby-lang.org/en/downloads/branches
         ruby: ["3.3", "3.2", "3.1"]
         # https://www.postgresql.org/support/versioning/
-        pg: [12-master, 13-master, 14-master, 15-master, 16-master]
+        mysql: [5.7, 8.0, 8.4, 9.5]
     steps:
       - name: Set Up Actions
         uses: actions/checkout@v4
@@ -59,12 +53,12 @@ jobs:
           bundler-cache: true
       - name: Setup Database
         run: |
-          psql -d postgresql://postgres:postgres@localhost:5432/postgres \
-            -c "create database postgis_adapter_test" \
+          mysql -d postgresql://mysql:mysqlpass@localhost:3306/mysql \
+            -c "create database rgeo_adapter_test" \
             -c "create database activerecord_unittest" \
             -c "create database activerecord_unittest2"
-          for db in postgis_adapter_test activerecord_unittest activerecord_unittest2; do
-            psql -d postgresql://postgres:postgres@localhost:5432/$db -c "create extension postgis"
+          for db in rgeo_adapter_test activerecord_unittest activerecord_unittest2; do
+            psql -d postgresql://mysql:mysqlpass@localhost:3306/$db -c "create extension postgis"
           done
       - name: Run Tests
         run: bundle exec rake test

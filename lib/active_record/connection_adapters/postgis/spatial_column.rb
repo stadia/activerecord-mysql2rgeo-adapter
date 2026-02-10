@@ -58,6 +58,29 @@ module ActiveRecord  # :nodoc:
           %i[geometry geography].include?(@sql_type_metadata.type)
         end
 
+        SPATIAL_ATTRIBUTES = %w[geographic geometric_type has_m has_z srid limit].freeze
+
+        def init_with(coder)
+          SPATIAL_ATTRIBUTES.each { |attr| instance_variable_set(:"@#{attr}", coder[attr]) }
+          super
+        end
+
+        def encode_with(coder)
+          SPATIAL_ATTRIBUTES.each { |attr| coder[attr] = instance_variable_get(:"@#{attr}") }
+          super
+        end
+
+        def ==(other)
+          other.is_a?(SpatialColumn) &&
+            super &&
+            SPATIAL_ATTRIBUTES.all? { |attr| public_send(attr) == other.public_send(attr) }
+        end
+        alias :eql? :==
+
+        def hash
+          SPATIAL_ATTRIBUTES.reduce(SpatialColumn.hash ^ super.hash) { |h, attr| h ^ public_send(attr).hash }
+        end
+
         private
 
         def set_geometric_type_from_name(name)

@@ -1,3 +1,7 @@
+### 10.0.2 / 2026-02-24
+
+* Fix limit data dropping from schema on migrate (conormi) #440
+
 ### 10.0.1 / 2024-11-15
 
 * Fix `Quoting` of RGeo objects (JamesChevalier) #417

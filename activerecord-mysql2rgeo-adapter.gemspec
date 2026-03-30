@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.description =
     "ActiveRecord connection adapter for MySQL. It is based on the stock MySQL adapter, and adds " \
     "built-in support for the spatial extensions provided by MySQL. It uses the RGeo library to represent " \
-    "spatial data in Ruby."
+    "spatial data in Ruby. This gem is maintained for MySQL 8.0 and 8.4."
 
   spec.version = ActiveRecord::ConnectionAdapters::Mysql2Rgeo::VERSION
   spec.author = "Yongdae Hwang"
@@ -31,6 +31,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rubocop", "~> 1.50"
 
   spec.metadata = {
+    "source_code_uri" => "https://github.com/stadia/activerecord-mysql2rgeo-adapter",
+    "documentation_uri" => "https://github.com/stadia/activerecord-mysql2rgeo-adapter/blob/main/README.md",
     "rubygems_mfa_required" => "true"
   }
 end

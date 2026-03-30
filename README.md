@@ -9,14 +9,17 @@ The activerecord-mysql2rgeo-adapter provides access to features
 of the MySQL geospatial database from ActiveRecord. It uses the
 [RGeo](http://github.com/rgeo/rgeo) library to represent spatial data in Ruby.
 
+This project is currently maintained and CI-tested against MySQL 8.0 and 8.4.
+MySQL 5.7 is not supported.
+
 ## Overview
 
 The adapter provides three basic capabilities:
 
 First, it provides *spatial migrations*. It extends the ActiveRecord migration
 syntax to support creating spatially-typed columns and spatial indexes. You
-can control the various PostGIS-provided attributes such as srid, dimension,
-and geographic vs geometric math.
+can control attributes such as srid, dimension, and geographic vs geometric
+math.
 
 Second, it recognizes spatial types and casts them properly to RGeo geometry
 objects. The adapter can configure these objects automatically based on the
@@ -28,7 +31,7 @@ RGeo objects can be embedded in where clauses.
 
 ## Install
 
-The adapter requires Mysql 5.6+.
+The adapter requires MySQL 8.0 or 8.4.
 
 Gemfile:
 
@@ -42,10 +45,8 @@ Gemfile for JRuby:
 gem 'activerecord-mysql2rgeo-adapter'
 gem 'jdbc-mysql', platform: :jruby
 gem 'activerecord-jdbc-adapter', platform: :jruby
-gem 'ffi-geos'
+gem 'ffi-geos', platform: :jruby
 ```
-
-_JRuby support for Rails 4.0 and 4.1 was added in version 2.2.0_
 
 #### Version 7.x supports ActiveRecord 7.0+
 
@@ -53,38 +54,8 @@ Requirements:
 
 ```
 ActiveRecord 7.0+
-Ruby 2.7+ (no JRuby support yet)
-PostGIS 2.0+
-```
-
-#### Version 6.x supports ActiveRecord 6.0+
-
-Requirements:
-
-```
-ActiveRecord 6.0+
-Ruby 2.5+ (no JRuby support yet)
-PostGIS 2.0+
-```
-
-#### Version 5.x supports ActiveRecord 5.1+
-
-Requirements:
-
-```
-ActiveRecord 5.1+
-Ruby 2.2.2+ (no JRuby support yet)
-PostGIS 2.0+
-```
-
-#### Version 4.x supports ActiveRecord 5.0+
-
-Requirements:
-
-```
-ActiveRecord 5.0+
-Ruby 2.2.2+, JRuby
-PostGIS 2.0+
+Ruby 3.0+ / JRuby
+MySQL 8.0 or 8.4
 ```
 
 ##### database.yml
@@ -143,7 +114,7 @@ Once you have set up your database config, run:
 rake db:create
 ```
 
-to create your development database. The adapter will add the PostGIS extension to your database.
+to create your development database.
 
 Once you have installed the adapter, edit your `config/database.yml` as described above.
 
@@ -160,7 +131,7 @@ described above.
 
 ### Creating Spatial Tables
 
-To store spatial data, you must create a column with a spatial type. PostGIS
+To store spatial data, you must create a column with a spatial type. MySQL
 provides a variety of spatial types, including point, linestring, polygon, and
 different kinds of collections. These types are defined in a standard produced
 by the Open Geospatial Consortium. You can specify options indicating the coordinate
@@ -201,7 +172,7 @@ The fifth column, "lonlatheight", is a geographic (longitude/latitude) point
 that also includes a third "z" coordinate that can be used to store height
 information.
 
-The following are the data types understood by PostGIS and exposed by
+The following are the data types understood by MySQL and exposed by
 activerecord-mysql2rgeo-adapter:
 
 * `:geometry` -- Any geometric type
@@ -354,9 +325,11 @@ same geometry (like a multipoint with a single element). Equality queries
 aren't generally all that useful in real world applications. Typically, if you
 want to perform a spatial query, you'll look for, say, all the points within a
 given area. For those queries, you'll need to use the standard spatial SQL
-functions provided by PostGIS.
+functions provided by MySQL.
 
 ## Development and Support
+
+The GitHub Actions test matrix currently covers MySQL 8.0 and 8.4.
 
 Contributions are welcome. See CONTRIBUTING.md for instructions.
 

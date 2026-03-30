@@ -128,18 +128,20 @@ module ActiveRecord
           @srid = string[0, 4].unpack1(marker == "\x01" ? "V" : "N")
           RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: @srid).parse(string[4..-1])
         elsif string.match?(/\A[0-9a-fA-F]+\z/)
+          original_srid = @srid
           parser = RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: @srid)
 
+          begin
+            return parser.parse([string].pack("H*"))
+          rescue RGeo::Error::ParseError, RGeo::Error::InvalidGeometry
+            @srid = original_srid
+          end
+
           if string[0, 10] =~ /[0-9a-fA-F]{8}0[01]/
-            original_srid = @srid
             @srid = string[0, 8].to_i(16)
             @srid = [@srid].pack("V").unpack("N").first if string[9, 1] == "1"
-
-            begin
-              return parser.parse([string[8..-1]].pack("H*"))
-            rescue RGeo::Error::ParseError, RGeo::Error::InvalidGeometry
-              @srid = original_srid
-            end
+            parser = RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: @srid)
+            return parser.parse([string[8..-1]].pack("H*"))
           end
 
           parser.parse([string].pack("H*"))

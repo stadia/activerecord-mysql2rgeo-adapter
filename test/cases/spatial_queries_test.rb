@@ -34,6 +34,27 @@ module PostGIS
       assert_nil(obj3)
     end
 
+    def test_query_geographic_point
+      create_model
+      obj = SpatialModel.create!(latlon_geo: geographic_factory.point(-122, 47))
+      id = obj.id
+      assert_empty SpatialModel.where(latlon_geo: geographic_factory.point(-123, 47))
+      obj1 = SpatialModel.find_by(latlon_geo: geographic_factory.point(-122, 47))
+      refute_nil(obj1)
+      assert_equal id, obj1.id
+    end
+
+    def test_query_geographic_point_wkt
+      create_model
+      obj = SpatialModel.create!(latlon_geo: geographic_factory.point(-122, 47))
+      id = obj.id
+      obj2 = SpatialModel.find_by(latlon_geo: "SRID=4326;POINT(-122 47)")
+      refute_nil(obj2)
+      assert_equal id, obj2.id
+      obj3 = SpatialModel.find_by(latlon_geo: "SRID=4326;POINT(-123 47)")
+      assert_nil(obj3)
+    end
+
     def test_query_st_distance
       create_model
       obj = SpatialModel.create!(latlon: factory.point(1, 2))
@@ -55,6 +76,30 @@ module PostGIS
       refute_nil(obj2)
       assert_equal(id, obj2.id)
       obj3 = SpatialModel.find_by(Arel.spatial(query_point).st_distance(SpatialModel.arel_table[:latlon]).gt(2))
+      assert_nil(obj3)
+    end
+
+    def test_query_geographic_st_distance
+      create_model
+      obj = SpatialModel.create!(latlon_geo: geographic_factory.point(-122, 47))
+      id = obj.id
+      obj2 = SpatialModel.find_by(SpatialModel.arel_table[:latlon_geo].st_distance("SRID=4326;POINT(-122.001 47)").lt(1000))
+      refute_nil(obj2)
+      assert_equal id, obj2.id
+      obj3 = SpatialModel.find_by(SpatialModel.arel_table[:latlon_geo].st_distance("SRID=4326;POINT(-123 47)").lt(1000))
+      assert_nil(obj3)
+    end
+
+    def test_query_geographic_st_distance_from_constant
+      create_model
+      obj = SpatialModel.create!(latlon_geo: geographic_factory.point(-122, 47))
+      id = obj.id
+
+      query_point = parser.parse("SRID=4326;POINT(-122.001 47)")
+      obj2 = SpatialModel.find_by(Arel.spatial(query_point).st_distance(SpatialModel.arel_table[:latlon_geo]).lt(1000))
+      refute_nil(obj2)
+      assert_equal id, obj2.id
+      obj3 = SpatialModel.find_by(Arel.spatial(parser.parse("SRID=4326;POINT(-123 47)")).st_distance(SpatialModel.arel_table[:latlon_geo]).lt(1000))
       assert_nil(obj3)
     end
 
@@ -102,6 +147,20 @@ module PostGIS
       assert_equal(id, obj2.id)
     end
 
+    def test_query_geographic_rgeo_bbox_node
+      create_model
+      obj = SpatialModel.new
+      obj.latlon_geo = geographic_factory.point(-122, 47)
+      obj.save!
+      id = obj.id
+
+      pt1 = geographic_factory.point(-123, 46)
+      pt2 = geographic_factory.point(-121, 48)
+      bbox = RGeo::Cartesian::BoundingBox.create_from_points(pt1, pt2)
+      obj2 = SpatialModel.find_by(SpatialModel.arel_table[:latlon_geo].st_within(bbox))
+      assert_equal(id, obj2.id)
+    end
+
     def test_ewkt_parser_query
       create_model
       obj = SpatialModel.create!(latlon: factory.point(1, 2))
@@ -120,6 +179,7 @@ module PostGIS
     def create_model
       SpatialModel.connection.create_table(:spatial_models, force: true) do |t|
         t.column "latlon", :st_point, srid: 3785
+        t.column "latlon_geo", :st_point, srid: 4326, geographic: true
         t.column "points", :multi_point, srid: 3785
         t.column "path", :line_string, srid: 3785
       end

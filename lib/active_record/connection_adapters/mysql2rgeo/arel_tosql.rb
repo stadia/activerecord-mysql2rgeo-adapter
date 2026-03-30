@@ -28,11 +28,7 @@ module Arel # :nodoc:
 
       def visit_String(node, collector)
         node, srid = Mysql2Rgeo.parse_node(node)
-        collector << if srid == 0
-                       "#{st_func('ST_WKTToSQL')}(#{quote(node)})"
-                     else
-                       "#{st_func('ST_WKTToSQL')}(#{quote(node)}, #{srid})"
-                     end
+        collector << spatial_constant_sql(node, srid)
       end
       alias visit_RGeo_Feature_Instance visit_String
       alias visit_RGeo_Cartesian_BoundingBox visit_String
@@ -45,11 +41,7 @@ module Arel # :nodoc:
         case node
         when String
           node, srid = Mysql2Rgeo.parse_node(node)
-          collector << if srid == 0
-                         "#{st_func('ST_WKTToSQL')}(#{quote(node)})"
-                       else
-                         "#{st_func('ST_WKTToSQL')}(#{quote(node)}, #{srid})"
-                       end
+          collector << spatial_constant_sql(node, srid)
         when RGeo::Feature::Instance
           visit_RGeo_Feature_Instance(node, collector)
         when RGeo::Cartesian::BoundingBox
@@ -88,6 +80,18 @@ module Arel # :nodoc:
           value = node
         end
         [value, srid]
+      end
+
+      private
+
+      def spatial_constant_sql(node, srid)
+        if srid == 0
+          "#{st_func('ST_WKTToSQL')}(#{quote(node)})"
+        elsif srid == 4326
+          "#{st_func('ST_WKTToSQL')}(#{quote(node)}, #{srid}, 'axis-order=long-lat')"
+        else
+          "#{st_func('ST_WKTToSQL')}(#{quote(node)}, #{srid})"
+        end
       end
     end
   end

@@ -130,9 +130,8 @@ module ActiveRecord # :nodoc:
             ).generate(geometry).upcase
             return wkb unless geographic
 
-            type_hex = [wkb[2, 8]].pack("H*").unpack1("V")
             srid_hex = [srid.to_i].pack("V").unpack1("H*").upcase
-            "#{wkb[0, 2]}#{[type_hex | 0x20000000].pack('V').unpack1('H*').upcase}#{srid_hex}#{wkb[10..-1]}"
+            "#{srid_hex}#{wkb}"
           end
         end
       end

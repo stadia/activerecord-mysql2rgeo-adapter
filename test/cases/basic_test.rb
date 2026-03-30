@@ -27,6 +27,14 @@ module PostGIS
       assert_equal "ST_GeomFromText('POINT (1.0 2.0)')", collector.value
     end
 
+    def test_mysql2rgeo_visitor_uses_long_lat_for_4326_constant
+      visitor = Arel::Visitors::Mysql2Rgeo.new(SpatialModel.connection)
+      node = RGeo::ActiveRecord::SpatialConstantNode.new("SRID=4326;POINT(-122 47)")
+      collector = Arel::Collectors::PlainString.new
+      visitor.accept(node, collector)
+      assert_equal "ST_GeomFromText('POINT(-122 47)', 4326, 'axis-order=long-lat')", collector.value
+    end
+
     def test_arel_visitor_will_not_visit_string
       visitor = Arel::Visitors::PostGIS.new(SpatialModel.connection)
       node = "POINT (1 2)"
@@ -77,6 +85,28 @@ module PostGIS
       assert_equal geographic_factory.point(1.0, 2.0), obj2.latlon_geo
       assert_equal 4326, obj2.latlon_geo.srid
       # assert_equal false, RGeo::Geos.is_geos?(obj2.latlon_geo)
+    end
+
+    def test_save_and_load_geographic_point_long_lat
+      create_model
+      obj = SpatialModel.new
+      obj.latlon_geo = geographic_factory.point(-122.0, 47.0)
+      obj.save!
+      id = obj.id
+      obj2 = SpatialModel.find(id)
+      assert_equal geographic_factory.point(-122.0, 47.0), obj2.latlon_geo
+      assert_equal 4326, obj2.latlon_geo.srid
+    end
+
+    def test_save_and_load_geographic_point_from_wkt_long_lat
+      create_model
+      obj = SpatialModel.new
+      obj.latlon_geo = "POINT(-122 47)"
+      obj.save!
+      id = obj.id
+      obj2 = SpatialModel.find(id)
+      assert_equal geographic_factory.point(-122.0, 47.0), obj2.latlon_geo
+      assert_equal 4326, obj2.latlon_geo.srid
     end
 
     def test_save_and_load_point_from_wkt

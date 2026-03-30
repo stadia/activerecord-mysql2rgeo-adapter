@@ -24,8 +24,6 @@ module ActiveRecord
             end
 
             if options_include_default?(options) && spatial_column_definition?(options[:column])
-              quoted_default = quote_default_expression(options[:default], options[:column])
-              sql << " DEFAULT (#{quoted_default})"
               options = options.except(:default)
             end
 

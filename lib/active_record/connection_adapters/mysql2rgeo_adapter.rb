@@ -195,7 +195,13 @@ module ActiveRecord
         return super unless column.respond_to?(:spatial?) && column.spatial?
 
         value = lookup_cast_type(column.sql_type).serialize(value)
-        "(#{quote(value)})"
+        hex = RGeo::WKRep::WKBGenerator.new(
+          hex_format: true,
+          little_endian: true,
+          type_format: :wkb11,
+          emit_ewkb_srid: false
+        ).generate(value).upcase
+        "(ST_GeomFromWKB(x'#{hex}', #{value.srid}))"
       end
 
       private

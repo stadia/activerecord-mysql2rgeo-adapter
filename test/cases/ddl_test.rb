@@ -268,8 +268,28 @@ module PostGIS
       assert_equal false, col.has_z?
       assert_equal false, col.has_m?
       assert_equal 4326, col.srid
-      assert_equal "0101000020E610000000000000000000000000000000000000", col.default
+      assert_equal "E6100000010100000000000000000000000000000000000000", col.default
       assert_equal({ type: "st_point", srid: 4326, geographic: true }, col.limit)
+      klass.connection.drop_table(:spatial_models)
+      assert_equal 0, count_geography_columns
+    end
+
+    def test_create_spatial_column_default_value_geographic_long_lat
+      klass.connection.create_table(:spatial_models, force: true) do |t|
+        t.geography "coordinates", limit: { srid: 4326, type: "st_point", geographic: true }, default: "POINT(-122.0 47.0)"
+      end
+      klass.reset_column_information
+
+      assert_equal 1, count_geography_columns
+      col = klass.columns.last
+      assert_equal RGeo::Feature::Point, col.geometric_type
+      assert_equal true, col.geographic?
+      assert_equal false, col.has_z?
+      assert_equal false, col.has_m?
+      assert_equal 4326, col.srid
+      assert_equal({ type: "st_point", srid: 4326, geographic: true }, col.limit)
+      assert_equal geographic_factory.point(-122.0, 47.0), klass.new.coordinates
+
       klass.connection.drop_table(:spatial_models)
       assert_equal 0, count_geography_columns
     end

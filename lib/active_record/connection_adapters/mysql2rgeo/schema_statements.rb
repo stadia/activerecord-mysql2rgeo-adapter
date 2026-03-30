@@ -75,6 +75,7 @@ module ActiveRecord
           default, default_function = field[:Default], nil
           metadata = Mysql2Rgeo::ColumnDefinitionUtils.extract_metadata(field[:Comment])
           comment = Mysql2Rgeo::ColumnDefinitionUtils.strip_metadata_comment(field[:Comment])
+          default = metadata[:default_hex] if default.nil? && metadata[:default_hex].present?
 
           if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
             default, default_function = nil, default
@@ -172,9 +173,8 @@ module ActiveRecord
           ).generate(geometry)
           return wkb.upcase unless spatial[:geographic]
 
-          type_hex = [wkb[2, 8]].pack("H*").unpack1("V")
           srid_hex = [spatial[:srid].to_i].pack("V").unpack1("H*")
-          "#{wkb[0, 2]}#{[type_hex | 0x20000000].pack('V').unpack1('H*')}#{srid_hex}#{wkb[10..-1]}".upcase
+          "#{srid_hex}#{wkb}".upcase
         end
 
         def generation_expression_for(table_name, column_name)

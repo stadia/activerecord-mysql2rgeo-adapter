@@ -39,14 +39,14 @@ module ActiveRecord
         [geo_type, srid]
       end
 
-      def spatial_factory
-        @spatial_factories ||= {}
-
-        @spatial_factories[@srid] ||=
-          RGeo::ActiveRecord::SpatialFactoryStore.instance.factory(
-            geo_type: @geo_type,
-            sql_type: @sql_type,
-            srid: @srid
+      def spatial_factory(srid = nil)
+        # Don't use instance variable caching since Type objects are frozen in Rails 8.1+
+        # The SpatialFactoryStore already caches factories internally
+        # Use provided srid or fall back to instance srid
+        RGeo::ActiveRecord::SpatialFactoryStore.instance.factory(
+          geo_type: @geo_type,
+          sql_type: @sql_type,
+          srid: srid || @srid
         )
       end
 
@@ -87,15 +87,15 @@ module ActiveRecord
       def parse_wkt(string)
         marker = string[4, 1]
         if ["\x00", "\x01"].include?(marker)
-          @srid = string[0, 4].unpack1(marker == "\x01" ? "V" : "N")
-          RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: @srid).parse(string[4..-1])
+          srid = string[0, 4].unpack1(marker == "\x01" ? "V" : "N")
+          RGeo::WKRep::WKBParser.new(spatial_factory(srid), support_ewkb: true, default_srid: srid).parse(string[4..-1])
         elsif string[0, 10] =~ /[0-9a-fA-F]{8}0[01]/
-          @srid = string[0, 8].to_i(16)
-          @srid = [@srid].pack("V").unpack("N").first if string[9, 1] == "1"
-          RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: srid).parse(string[8..-1])
+          srid = string[0, 8].to_i(16)
+          srid = [srid].pack("V").unpack("N").first if string[9, 1] == "1"
+          RGeo::WKRep::WKBParser.new(spatial_factory(srid), support_ewkb: true, default_srid: srid).parse(string[8..-1])
         else
-          string, @srid = Arel::Visitors::Mysql2Rgeo.parse_node(string)
-          RGeo::WKRep::WKTParser.new(spatial_factory, support_ewkt: true, default_srid: @srid).parse(string)
+          string, srid = Arel::Visitors::Mysql2Rgeo.parse_node(string)
+          RGeo::WKRep::WKTParser.new(spatial_factory(srid), support_ewkt: true, default_srid: srid).parse(string)
         end
       rescue RGeo::Error::ParseError, RGeo::Error::InvalidGeometry
         nil

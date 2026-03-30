@@ -8,3 +8,4 @@ gem "jdbc-mysql", platform: :jruby
 gem "activerecord-jdbc-adapter", "~> 5.0", platform: :jruby
 gem "ffi-geos", platform: :jruby
 gem "byebug" if ENV["BYEBUG"]
+gem "activerecord", "~> 8.1.0"

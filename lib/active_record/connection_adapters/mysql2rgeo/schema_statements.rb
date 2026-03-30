@@ -40,27 +40,38 @@ module ActiveRecord
 
         # override
         def new_column_from_field(table_name, field, _definitions)
-          type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-          default, default_function = field[:Default], nil
+          field_name = field.fetch("Field")
+          type_metadata = fetch_type_metadata(field["Type"], field["Extra"])
+          default, default_function = field["Default"], nil
 
           if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
+            default = "#{default} ON UPDATE #{default}" if /on update CURRENT_TIMESTAMP/i.match?(field["Extra"])
             default, default_function = nil, default
           elsif type_metadata.extra == "DEFAULT_GENERATED"
             default = +"(#{default})" unless default.start_with?("(")
+            default = default.gsub("\\'", "'")
+            default, default_function = nil, default
+          elsif type_metadata.type == :text && default&.start_with?("'")
+            # strip and unescape quotes
+            default = default[1...-1].gsub("\\'", "'")
+          elsif default&.match?(/\A\d/)
+            # Its a number so we can skip the query to check if it is a function
+          elsif default && default_type(table_name, field_name) == :function
             default, default_function = nil, default
           end
 
           # {:dimension=>2, :has_m=>false, :has_z=>false, :name=>"latlon", :srid=>0, :type=>"GEOMETRY"}
-          spatial = spatial_column_info(table_name).get(field[:Field], type_metadata.sql_type)
+          spatial = spatial_column_info(table_name).get(field["Field"], type_metadata.sql_type)
 
           SpatialColumn.new(
-            field[:Field],
+            field["Field"],
+            lookup_cast_type(type_metadata.sql_type),
             default,
             type_metadata,
-            field[:Null] == "YES",
+            field["Null"] == "YES",
             default_function,
-            collation: field[:Collation],
-            comment: field[:Comment].presence,
+            collation: field["Collation"],
+            comment: field["Comment"].presence,
             spatial: spatial
           )
         end

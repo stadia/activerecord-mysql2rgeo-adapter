@@ -5,12 +5,12 @@
 ![Codeql](https://github.com/stadia/activerecord-mysql2rgeo-adapter/actions/workflows/codeql-analysis.yml/badge.svg?branch=main)
 [![Code Climate](https://codeclimate.com/github/stadia/activerecord-mysql2rgeo-adapter.png)](https://codeclimate.com/github/stadia/activerecord-mysql2rgeo-adapter)
 
-The activerecord-mysql2rgeo-adapter provides access to features
-of the MySQL geospatial database from ActiveRecord. It uses the
-[RGeo](http://github.com/rgeo/rgeo) library to represent spatial data in Ruby.
+The activerecord-mysql2rgeo-adapter provides access to MySQL spatial features
+from ActiveRecord. It uses the
+[RGeo](https://github.com/rgeo/rgeo) library to represent spatial data in Ruby.
 
-This project is currently maintained and CI-tested against MySQL 8.0 and 8.4.
-MySQL 5.7 is not supported.
+This project is maintained against MySQL 8.0 and 8.4. MySQL 5.7 is not
+supported.
 
 ## Overview
 
@@ -48,15 +48,18 @@ gem 'activerecord-jdbc-adapter', platform: :jruby
 gem 'ffi-geos', platform: :jruby
 ```
 
-#### Version 7.x supports ActiveRecord 7.0+
+#### Version 7.3.x supports ActiveRecord 7.2.x
 
 Requirements:
 
 ```
-ActiveRecord 7.0+
-Ruby 3.0+ / JRuby
+ActiveRecord 7.2.x
+Ruby 3.1+ / JRuby
 MySQL 8.0 or 8.4
 ```
+
+The test suite is synchronized against the upstream Active Record 10.0-stable
+test tree, with MySQL-specific setup and excludes kept in this repository.
 
 ##### database.yml
 
@@ -120,7 +123,7 @@ Once you have installed the adapter, edit your `config/database.yml` as describe
 
 ## Upgrading an Existing Database
 
-If you have an existing Rails app that uses Mysql,
+If you have an existing Rails app that uses MySQL,
 and you want to add geospatial features, follow these steps.
 
 First, add the `activerecord-mysql2rgeo-adapter` gem to the Gemfile, and update
@@ -195,10 +198,6 @@ change_table :my_table do |t|
   t.index :lonlat, type: :spatial
 end
 ```
-
-### Point and Polygon Types with ActiveRecord 4.2+
-
-Prior to version 3, the `point` and `polygon` types were supported.
 
 ### Configuring ActiveRecord
 

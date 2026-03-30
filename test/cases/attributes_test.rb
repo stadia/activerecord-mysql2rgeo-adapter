@@ -5,6 +5,8 @@ require_relative "../test_helper"
 module PostGIS
   class Foo < ActiveRecord::Base
     has_one :spatial_foo
+    attribute :bar, :string, array: true
+    attribute :baz, :string, range: true
   end
 
   class SpatialFoo < ActiveRecord::Base
@@ -21,14 +23,21 @@ module PostGIS
 
   class AttributesTest < ActiveSupport::TestCase
     def setup
-      reset_spatial_store
       create_foo
       create_spatial_foo
       create_invalid_attributes
     end
 
     def test_postgresql_attributes_registered
-      skip "PostgreSQL array/range attributes are not supported by mysql2rgeo"
+      assert Foo.attribute_names.include?("bar")
+      assert Foo.attribute_names.include?("baz")
+
+      data = Foo.new
+      data.bar = %w[a b c]
+      data.baz = "1".."3"
+
+      assert_equal data.bar, %w[a b c]
+      assert_equal data.baz, "1".."3"
     end
 
     def test_invalid_attribute
@@ -89,12 +98,12 @@ module PostGIS
     private
 
     def create_foo
-      Foo.connection.create_table :foos, force: true do |t|
+      Foo.lease_connection.create_table :foos, force: true do |t|
       end
     end
 
     def create_spatial_foo
-      SpatialFoo.connection.create_table :spatial_foos, force: true do |t|
+      SpatialFoo.lease_connection.create_table :spatial_foos, force: true do |t|
         t.references :foo
         t.st_point :geo_point, geographic: true, srid: 4326
         t.st_point :cart_point, srid: 3509
@@ -102,7 +111,7 @@ module PostGIS
     end
 
     def create_invalid_attributes
-      InvalidAttribute.connection.create_table :invalid_attributes, force: true do |t|
+      InvalidAttribute.lease_connection.create_table :invalid_attributes, force: true do |t|
       end
     end
   end

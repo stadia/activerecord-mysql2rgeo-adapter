@@ -3,7 +3,7 @@
 POSTGIS_TEST_HELPER = "test/test_helper.rb"
 
 def ar_root
-  File.join(Gem.loaded_specs["rails"].full_gem_path, "activerecord")
+  Gem.loaded_specs["activerecord"].full_gem_path
 end
 
 def postgis_test_load_paths
@@ -29,21 +29,19 @@ def activerecord_test_files
       .map { |file| File.join ar_root, file.strip }
       .sort
       .prepend(POSTGIS_TEST_HELPER)
+      .then { FileList[*_1] }
   else
-    Dir
-      .glob("#{ar_root}/test/cases/**/*_test.rb")
-      .grep_v(%r{/adapters/mysql2/})
-      .grep_v(%r{/adapters/sqlite3/})
-      .sort
-      .prepend(POSTGIS_TEST_HELPER)
+    FileList["#{ar_root}/test/cases/**/*_test.rb"]
+      .reject { _1.include?("/adapters/") || _1.include?("/encryption/performance") }
+      .then { |list| FileList[POSTGIS_TEST_HELPER] + list + FileList["#{ar_root}/test/cases/adapters/postgresql/**/*_test.rb"] }
   end
 end
 
 def postgis_test_files
   if ENV["POSTGIS_TEST_FILES"]
-    ENV["POSTGIS_TEST_FILES"].split(",").map(&:strip)
+    ENV["POSTGIS_TEST_FILES"].split(",").map(&:strip).then { FileList[*_1] }
   else
-    Dir.glob("test/cases/**/*_test.rb")
+    FileList["test/cases/**/*_test.rb"]
   end
 end
 

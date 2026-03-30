@@ -14,6 +14,10 @@ module ActiveRecord
           column(name, :geometry, **options)
         end
 
+        def geography(name, options = {})
+          column(name, :geometry, geographic: true, **options)
+        end
+
         def geometry_collection(name, options = {})
           column(name, :geometrycollection, **options)
         end
@@ -42,10 +46,12 @@ module ActiveRecord
         def point(name, options = {})
           column(name, :point, **options)
         end
+        alias st_point point
 
         def polygon(name, options = {})
           column(name, :polygon, **options)
         end
+        alias st_polygon polygon
       end
     end
 

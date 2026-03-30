@@ -13,11 +13,11 @@ module ActiveRecord # :nodoc:
         def all
           info = if @adapter.supports_expression_index?
                    @adapter.query(
-                     "SELECT column_name, srs_id, column_type FROM INFORMATION_SCHEMA.Columns WHERE table_name='#{@table_name}'"
+                     "SELECT column_name, srs_id, column_type, column_comment FROM INFORMATION_SCHEMA.Columns WHERE table_schema = DATABASE() AND table_name='#{@table_name}'"
                    )
                  else
                    @adapter.query(
-                     "SELECT column_name, 0, column_type FROM INFORMATION_SCHEMA.Columns WHERE table_name='#{@table_name}'"
+                     "SELECT column_name, 0, column_type, column_comment FROM INFORMATION_SCHEMA.Columns WHERE table_schema = DATABASE() AND table_name='#{@table_name}'"
                    )
                  end
 
@@ -25,11 +25,16 @@ module ActiveRecord # :nodoc:
           info.each do |row|
             name = row[0]
             type = row[2]
-            type.sub!(/m$/, "")
+            column_comment = row[3].to_s
+            has_z = type.sub!(/z$/i, "").present?
+            has_m = type.sub!(/m$/i, "").present?
             result[name] = {
               name:      name,
               srid:      row[1].to_i,
               type:      type,
+              has_z:     has_z,
+              has_m:     has_m,
+              geographic: column_comment.include?("mysql2rgeo:geographic"),
             }
           end
           result

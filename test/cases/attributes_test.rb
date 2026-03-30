@@ -5,8 +5,6 @@ require_relative "../test_helper"
 module PostGIS
   class Foo < ActiveRecord::Base
     has_one :spatial_foo
-    attribute :bar, :string, array: true
-    attribute :baz, :string, range: true
   end
 
   class SpatialFoo < ActiveRecord::Base
@@ -30,15 +28,7 @@ module PostGIS
     end
 
     def test_postgresql_attributes_registered
-      assert Foo.attribute_names.include?("bar")
-      assert Foo.attribute_names.include?("baz")
-
-      data = Foo.new
-      data.bar = %w[a b c]
-      data.baz = "1".."3"
-
-      assert_equal data.bar, %w[a b c]
-      assert_equal data.baz, "1".."3"
+      skip "PostgreSQL array/range attributes are not supported by mysql2rgeo"
     end
 
     def test_invalid_attribute

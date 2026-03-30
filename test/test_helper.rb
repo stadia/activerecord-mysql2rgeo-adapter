@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "bundler/setup"
 require "minitest/autorun"
 require "minitest/pride"
 require "mocha/minitest"
@@ -24,20 +25,24 @@ module ActiveRecord
   end
 end
 
+ActiveRecord::Base.establish_test_connection
+
 class SpatialModel < ActiveRecord::Base
-  establish_test_connection
 end
 
 class SpatialMultiModel < ActiveRecord::Base
-  establish_test_connection
 end
 
 module ActiveSupport
   class TestCase
     self.test_order = :sorted
 
-    def factory
-      RGeo::Cartesian.preferred_factory(srid: 3857)
+    def database_version
+      @database_version ||= SpatialModel.connection.select_value("SELECT version()")
+    end
+
+    def factory(srid: 3857)
+      RGeo::Cartesian.preferred_factory(srid: srid)
     end
 
     def geographic_factory
@@ -46,6 +51,11 @@ module ActiveSupport
 
     def spatial_factory_store
       RGeo::ActiveRecord::SpatialFactoryStore.instance
+    end
+
+    def reset_spatial_store
+      spatial_factory_store.clear
+      spatial_factory_store.default = nil
     end
   end
 end

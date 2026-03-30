@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "./lib/active_record/connection_adapters/mysql2rgeo/version.rb"
+require_relative "lib/active_record/connection_adapters/mysql2rgeo/version"
 
 Gem::Specification.new do |spec|
   spec.name = "activerecord-mysql2rgeo-adapter"
@@ -19,15 +19,18 @@ Gem::Specification.new do |spec|
   spec.files = Dir["lib/**/*", "LICENSE.txt"]
   spec.platform = Gem::Platform::RUBY
 
-  spec.required_ruby_version = ">= 2.7.0"
+  spec.required_ruby_version = ">= 3.0.0"
 
   spec.add_dependency "activerecord", "~> 7.1.0"
   spec.add_dependency "rgeo-activerecord", "~> 7.0.0"
-  spec.add_dependency "rgeo", "~> 3.0"
-  spec.add_dependency "securerandom", "~> 0.3.0"
 
-  spec.add_development_dependency "rake", "~> 12.0"
+  spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "minitest", "~> 5.4"
-  spec.add_development_dependency "mocha", "~> 2.1"
-  spec.add_development_dependency "appraisal", "~> 2.0"
+  spec.add_development_dependency "mocha", "~> 1.1"
+  spec.add_development_dependency "benchmark-ips", "~> 2.12"
+  spec.add_development_dependency "rubocop", "~> 1.50"
+
+  spec.metadata = {
+    "rubygems_mfa_required" => "true"
+  }
 end

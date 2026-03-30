@@ -7,13 +7,18 @@ module ActiveRecord # :nodoc:
         def initialize(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, spatial: nil, array: false, **)
           @sql_type_metadata = sql_type_metadata
           @array = array
+          @geographic = !!(sql_type_metadata&.sql_type =~ /geography\(/i)
           if spatial
             # This case comes from an entry in the geometry_columns table
             set_geometric_type_from_name(spatial[:type])
             @srid = spatial[:srid].to_i
-            @has_z = spatial[:has_z]
-            @has_m = spatial[:has_m]
-            @geographic = spatial[:geographic]
+            @has_z = !!spatial[:has_z]
+            @has_m = !!spatial[:has_m]
+            @geographic = !!spatial[:geographic] || @geographic
+          elsif @geographic
+            @srid = 4326
+            @has_z = @has_m = false
+            build_from_sql_type(sql_type_metadata.sql_type)
           elsif sql_type =~ /geometry|point|linestring|polygon/i
             build_from_sql_type(sql_type_metadata.sql_type)
           elsif sql_type_metadata.sql_type =~ /geometry|point|linestring|polygon/i
@@ -65,6 +70,30 @@ module ActiveRecord # :nodoc:
 
         def spatial?
           %i[geometry geography].include?(@sql_type_metadata.type)
+        end
+
+        SPATIAL_ATTRIBUTES = %w[geographic geometric_type has_m has_z srid limit].freeze
+
+        def init_with(coder)
+          SPATIAL_ATTRIBUTES.each { |attr| instance_variable_set(:"@#{attr}", coder[attr]) }
+          super
+        end
+
+        def encode_with(coder)
+          SPATIAL_ATTRIBUTES.each { |attr| coder[attr] = instance_variable_get(:"@#{attr}") }
+          super
+        end
+
+        def ==(other)
+          other.is_a?(SpatialColumn) &&
+            super &&
+            array == other.array &&
+            SPATIAL_ATTRIBUTES.all? { |attr| public_send(attr) == other.public_send(attr) }
+        end
+        alias eql? ==
+
+        def hash
+          SPATIAL_ATTRIBUTES.reduce(SpatialColumn.hash ^ super.hash ^ array.hash) { |h, attr| h ^ public_send(attr).hash }
         end
 
         private

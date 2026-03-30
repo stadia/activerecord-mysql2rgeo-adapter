@@ -128,10 +128,16 @@ module ActiveRecord # :nodoc:
               type_format: :wkb11,
               emit_ewkb_srid: false
             ).generate(geometry).upcase
-            return wkb unless geographic
+            geographic ? with_ewkb_srid(wkb, srid) : wkb
+          end
 
+          def with_ewkb_srid(wkb, srid)
+            endian = wkb[0, 2]
+            type_hex = wkb[2, 8]
+            body = wkb[10..]
+            type = [type_hex].pack("H*").unpack1("V") | 0x20000000
             srid_hex = [srid.to_i].pack("V").unpack1("H*").upcase
-            "#{srid_hex}#{wkb}"
+            "#{endian}#{[type].pack('V').unpack1('H*').upcase}#{srid_hex}#{body}"
           end
         end
       end

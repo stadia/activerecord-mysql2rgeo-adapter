@@ -22,6 +22,12 @@ require "active_record/type/spatial"
 
 # :startdoc:
 
+ActiveRecord::ConnectionAdapters.register(
+  "mysql2rgeo",
+  "ActiveRecord::ConnectionAdapters::Mysql2RgeoAdapter",
+  "active_record/connection_adapters/mysql2rgeo_adapter"
+)
+
 module ActiveRecord
   module ConnectionHandling # :nodoc:
     # Establishes a connection to the database that's used by all Active Record objects.
@@ -71,10 +77,9 @@ module ActiveRecord
           st_polygon:          { type: "polygon" }
         }.freeze
 
-      # http://postgis.17.x6.nabble.com/Default-SRID-td5001115.html
       DEFAULT_SRID = 0
 
-      def initialize(connection, logger, connection_options, config)
+      def initialize(...)
         super
 
         @visitor = Arel::Visitors::Mysql2Rgeo.new(self)
@@ -157,6 +162,7 @@ module ActiveRecord
                 Type::Spatial.new(geo_type, geo_type: geo_type, **kwargs)
               end
             end
+
           end
       end
 
@@ -169,12 +175,12 @@ module ActiveRecord
         !mariadb? && version >= "5.7.6"
       end
 
-      def postgis_lib_version
-        "3.0.mysql2rgeo"
+      def supports_partitioned_indexes?
+        false
       end
 
       def adapter_name
-        "PostGIS"
+        "Mysql2Rgeo"
       end
 
       def quote(value)

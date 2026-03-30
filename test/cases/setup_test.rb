@@ -2,12 +2,10 @@
 
 require_relative "../test_helper"
 
-module PostGIS
+module Mysql2Rgeo
   class SpatialQueriesTest < ActiveSupport::TestCase
     def test_ignore_tables
       expect_to_ignore = %w[
-        geography_columns
-        geometry_columns
         layer
         raster_columns
         raster_overviews

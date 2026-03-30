@@ -2,7 +2,7 @@
 
 require_relative "../test_helper"
 
-module PostGIS
+module Mysql2Rgeo
   class SpatialColumnTest < ActiveSupport::TestCase
     # ------------------------------------------------------------------
     # encode_with / init_with  –  YAML round-trip
@@ -266,14 +266,14 @@ module PostGIS
         type: :geometry,
         spatial: { type: "Point", srid: 4326, has_z: false, has_m: false }
       )
-      # A regular PostgreSQL column
+      # A regular MySQL column
       type_metadata = ActiveRecord::ConnectionAdapters::SqlTypeMetadata.new(
-        sql_type: "character varying(255)",
+        sql_type: "varchar(255)",
         type: :string,
         limit: 255
       )
-      pg_metadata = ActiveRecord::ConnectionAdapters::PostgreSQL::TypeMetadata.new(type_metadata)
-      string_col = ActiveRecord::ConnectionAdapters::PostgreSQLColumn.new("name", nil, pg_metadata, true)
+      mysql_metadata = ActiveRecord::ConnectionAdapters::MySQL::TypeMetadata.new(type_metadata)
+      string_col = ActiveRecord::ConnectionAdapters::MySQL::Column.new("name", nil, mysql_metadata, true)
 
       refute_equal spatial_col, string_col
     end
@@ -496,12 +496,12 @@ module PostGIS
         sql_type: sql_type,
         type: type
       )
-      pg_metadata = ActiveRecord::ConnectionAdapters::PostgreSQL::TypeMetadata.new(base_metadata)
+      mysql_metadata = ActiveRecord::ConnectionAdapters::MySQL::TypeMetadata.new(base_metadata)
 
-      ActiveRecord::ConnectionAdapters::PostGIS::SpatialColumn.new(
+      ActiveRecord::ConnectionAdapters::Mysql2Rgeo::SpatialColumn.new(
         name,
         nil,        # default
-        pg_metadata,
+        mysql_metadata,
         true,       # null
         nil,        # default_function
         spatial: spatial

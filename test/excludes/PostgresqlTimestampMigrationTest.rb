@@ -1,2 +1,0 @@
-exclude "test_adds_column_as_custom_type", TRIAGE_MSG
-exclude "test_adds_column_as_timestamptz_if_datetime_type_changed", TRIAGE_MSG

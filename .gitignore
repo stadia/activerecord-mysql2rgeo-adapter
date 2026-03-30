@@ -11,3 +11,4 @@ Gemfile.lock
 coverage
 debug.log
 /test/db/*
+/test/storage/*

@@ -2,26 +2,25 @@
 
 require_relative "../test_helper"
 
-module PostGIS
+module Mysql2Rgeo
   class BasicTest < ActiveSupport::TestCase
     def teardown
       reset_spatial_store
+      SpatialModel.lease_connection.drop_table(:spatial_models, if_exists: true)
+      SpatialModel.reset_column_information
     end
 
     def test_version
-      refute_nil ActiveRecord::ConnectionAdapters::PostGIS::VERSION
+      refute_nil ActiveRecord::ConnectionAdapters::Mysql2Rgeo::VERSION
     end
 
-    def test_postgis_available
-      assert_equal "PostGIS", SpatialModel.lease_connection.adapter_name
-      expected_postgis_lib_version_value = SpatialModel.lease_connection.select_value("SELECT postgis_lib_version()")
-      assert_equal expected_postgis_lib_version_value, SpatialModel.lease_connection.postgis_lib_version
-      valid_version = ["2.", "3."].any? { |major_ver| SpatialModel.lease_connection.postgis_lib_version.start_with? major_ver }
-      assert valid_version
+    def test_adapter_available
+      assert_equal "Mysql2Rgeo", SpatialModel.lease_connection.adapter_name
+      assert_match(/\A\d+\.\d+/, database_version)
     end
 
     def test_arel_visitor
-      visitor = Arel::Visitors::PostGIS.new(SpatialModel.lease_connection)
+      visitor = Arel::Visitors::Mysql2Rgeo.new(SpatialModel.lease_connection)
       node = RGeo::ActiveRecord::SpatialConstantNode.new("POINT (1.0 2.0)")
       collector = Arel::Collectors::PlainString.new
       visitor.accept(node, collector)
@@ -29,13 +28,12 @@ module PostGIS
     end
 
     def test_arel_visitor_will_not_visit_string
-      visitor = Arel::Visitors::PostGIS.new(SpatialModel.lease_connection)
+      visitor = Arel::Visitors::Mysql2Rgeo.new(SpatialModel.lease_connection)
       node = "POINT (1 2)"
       collector = Arel::Collectors::PlainString.new
 
-      assert_raises(Arel::Visitors::UnsupportedVisitError) do
-        visitor.accept(node, collector)
-      end
+      visitor.accept(node, collector)
+      assert_equal "ST_GeomFromText('POINT (1 2)')", collector.value
     end
 
     def test_set_and_get_point

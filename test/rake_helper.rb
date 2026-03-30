@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-POSTGIS_TEST_HELPER = "test/test_helper.rb"
+MYSQL2RGEO_TEST_HELPER = "test/test_helper.rb"
 
 def ar_root
   Gem.loaded_specs["activerecord"].full_gem_path
 end
 
-def postgis_test_load_paths
+def mysql2rgeo_test_load_paths
   ["lib", "test", File.join(ar_root, "lib"), File.join(ar_root, "test")]
 end
 
 def config_load_paths!
-  postgis_test_load_paths.each { |p| $LOAD_PATH.unshift(p) unless $LOAD_PATH.include?(p) }
+  mysql2rgeo_test_load_paths.each { |p| $LOAD_PATH.unshift(p) unless $LOAD_PATH.include?(p) }
 end
 
 def set_arconfig_env!
@@ -28,23 +28,23 @@ def activerecord_test_files
       .split(",")
       .map { |file| File.join ar_root, file.strip }
       .sort
-      .prepend(POSTGIS_TEST_HELPER)
+      .prepend(MYSQL2RGEO_TEST_HELPER)
       .then { FileList[*_1] }
   else
     FileList["#{ar_root}/test/cases/**/*_test.rb"]
       .reject { _1.include?("/adapters/") || _1.include?("/encryption/performance") }
-      .then { |list| FileList[POSTGIS_TEST_HELPER] + list + FileList["#{ar_root}/test/cases/adapters/postgresql/**/*_test.rb"] }
+      .then { |list| FileList[MYSQL2RGEO_TEST_HELPER] + list }
   end
 end
 
-def postgis_test_files
-  if ENV["POSTGIS_TEST_FILES"]
-    ENV["POSTGIS_TEST_FILES"].split(",").map(&:strip).then { FileList[*_1] }
+def mysql2rgeo_test_files
+  if ENV["MYSQL2RGEO_TEST_FILES"]
+    ENV["MYSQL2RGEO_TEST_FILES"].split(",").map(&:strip).then { FileList[*_1] }
   else
     FileList["test/cases/**/*_test.rb"]
   end
 end
 
 def all_test_files
-  activerecord_test_files + postgis_test_files
+  activerecord_test_files + mysql2rgeo_test_files
 end

@@ -2,7 +2,7 @@
 
 require_relative "../test_helper"
 
-module PostGIS
+module Mysql2Rgeo
   class NestedClassTest < ActiveSupport::TestCase
     module Foo
       def self.table_name_prefix
@@ -18,7 +18,10 @@ module PostGIS
         t.column "latlon", :st_point, srid: 3785
       end
       assert_empty Foo::Bar.all
-      Foo::Bar.lease_connection.drop_table(:foo_bars)
+    end
+
+    def teardown
+      Foo::Bar.lease_connection.drop_table(:foo_bars, if_exists: true)
     end
   end
 end

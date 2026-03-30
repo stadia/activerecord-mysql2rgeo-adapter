@@ -2,7 +2,7 @@
 
 require_relative "../test_helper"
 
-module PostGIS
+module Mysql2Rgeo
   class TypeTest < ActiveSupport::TestCase
     def test_parse_simple_type
       assert_equal ["geometry", 0, false, false, false], spatial.parse_sql_type("geometry")
@@ -37,7 +37,7 @@ module PostGIS
     private
 
     def spatial
-      ActiveRecord::ConnectionAdapters::PostGIS::OID::Spatial
+      ActiveRecord::Type::Spatial
     end
   end
 end

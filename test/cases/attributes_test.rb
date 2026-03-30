@@ -2,11 +2,9 @@
 
 require_relative "../test_helper"
 
-module PostGIS
+module Mysql2Rgeo
   class Foo < ActiveRecord::Base
     has_one :spatial_foo
-    attribute :bar, :string, array: true
-    attribute :baz, :string, range: true
   end
 
   class SpatialFoo < ActiveRecord::Base
@@ -28,16 +26,11 @@ module PostGIS
       create_invalid_attributes
     end
 
-    def test_postgresql_attributes_registered
-      assert Foo.attribute_names.include?("bar")
-      assert Foo.attribute_names.include?("baz")
-
-      data = Foo.new
-      data.bar = %w[a b c]
-      data.baz = "1".."3"
-
-      assert_equal data.bar, %w[a b c]
-      assert_equal data.baz, "1".."3"
+    def teardown
+      InvalidAttribute.lease_connection.drop_table(:invalid_attributes, if_exists: true)
+      SpatialFoo.lease_connection.drop_table(:spatial_foos, if_exists: true)
+      Foo.lease_connection.drop_table(:foos, if_exists: true)
+      [InvalidAttribute, SpatialFoo, Foo].each(&:reset_column_information)
     end
 
     def test_invalid_attribute

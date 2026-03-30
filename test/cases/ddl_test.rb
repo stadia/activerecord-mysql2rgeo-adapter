@@ -3,9 +3,14 @@
 require_relative "../test_helper"
 require "active_record/testing/query_assertions"
 
-module PostGIS
+module Mysql2Rgeo
   class DDLTest < ActiveSupport::TestCase
     include ActiveRecord::Assertions::QueryAssertions
+
+    def teardown
+      klass.lease_connection.drop_table(:spatial_models, if_exists: true)
+      klass.reset_column_information
+    end
 
     def test_spatial_column_options
       [
@@ -19,7 +24,7 @@ module PostGIS
         :st_point,
         :st_polygon,
       ].each do |type|
-        assert ActiveRecord::ConnectionAdapters::PostGISAdapter.spatial_column_options(type), type
+        assert ActiveRecord::ConnectionAdapters::Mysql2RgeoAdapter.spatial_column_options(type), type
       end
     end
 
@@ -122,7 +127,6 @@ module PostGIS
       klass.reset_column_information
       assert_equal 1, count_geometry_columns
       cols = klass.columns
-      # latlon
       assert_equal RGeo::Feature::Geometry, cols[-4].geometric_type
       assert_equal 0, cols[-4].srid
       assert_equal true, cols[-4].spatial?
@@ -315,7 +319,7 @@ module PostGIS
 
     # Ensure virtual column default function works like the Postgres adapter.
     def test_virtual_column_default_function
-      skip "Virtual Columns are not supported in this version of PostGIS" unless SpatialModel.lease_connection.supports_virtual_columns?
+      skip "Virtual columns are not supported by this MySQL version" unless SpatialModel.lease_connection.supports_virtual_columns?
       klass.lease_connection.create_table(:spatial_models, force: true) do |t|
         t.integer :column1
         t.virtual :column2, type: :integer, as: "(column1 + 1)", stored: true
@@ -377,7 +381,7 @@ module PostGIS
     end
 
     def test_generated_geometry_column
-      skip "Virtual Columns are not supported in this version of PostGIS" unless SpatialModel.lease_connection.supports_virtual_columns?
+      skip "Virtual columns are not supported by this MySQL version" unless SpatialModel.lease_connection.supports_virtual_columns?
       klass.lease_connection.create_table(:spatial_models, force: true) do |t|
         t.st_point :coordinates, limit: { srid: 4326 }
         t.virtual :generated_buffer, type: :st_polygon, limit: { srid: 4326 }, as: "ST_Buffer(coordinates, 10)", stored: true
@@ -396,15 +400,25 @@ module PostGIS
     end
 
     def count_geometry_columns
-      klass.lease_connection.select_value(geo_column_sql("geometry_columns", klass.table_name)).to_i
+      klass.lease_connection.select_value(geo_column_sql(geographic: false, table_name: klass.table_name)).to_i
     end
 
     def count_geography_columns
-      klass.lease_connection.select_value(geo_column_sql("geography_columns", klass.table_name)).to_i
+      klass.lease_connection.select_value(geo_column_sql(geographic: true, table_name: klass.table_name)).to_i
     end
 
-    def geo_column_sql(postgis_view, table_name)
-      "SELECT COUNT(*) FROM #{postgis_view} WHERE f_table_name='#{table_name}'"
+    def geo_column_sql(geographic:, table_name:)
+      <<~SQL.squish
+        SELECT COUNT(*)
+        FROM information_schema.ST_GEOMETRY_COLUMNS g
+        JOIN information_schema.COLUMNS c
+          ON c.TABLE_SCHEMA = g.TABLE_SCHEMA
+         AND c.TABLE_NAME = g.TABLE_NAME
+         AND c.COLUMN_NAME = g.COLUMN_NAME
+        WHERE g.TABLE_SCHEMA = DATABASE()
+          AND g.TABLE_NAME = #{klass.lease_connection.quote(table_name)}
+          AND c.COLUMN_COMMENT #{geographic ? 'LIKE' : 'NOT LIKE'} '%mysql2rgeo:geographic%'
+      SQL
     end
   end
 end

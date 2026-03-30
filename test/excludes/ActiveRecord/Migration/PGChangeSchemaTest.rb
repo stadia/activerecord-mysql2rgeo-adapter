@@ -1,1 +1,0 @@
-exclude "test_change_type_with_symbol_using_datetime_with_timestamptz_as_default", TRIAGE_MSG

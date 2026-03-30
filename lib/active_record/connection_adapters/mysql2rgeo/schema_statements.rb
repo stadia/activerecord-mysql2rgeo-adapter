@@ -53,6 +53,10 @@ module ActiveRecord
           super
         end
 
+        def update_table_definition(table_name, base)
+          Mysql2Rgeo::Table.new(table_name, base)
+        end
+
         private
 
         # override
@@ -63,10 +67,6 @@ module ActiveRecord
         # override
         def create_table_definition(*args, **options)
           Mysql2Rgeo::TableDefinition.new(self, *args, **options)
-        end
-
-        def update_table_definition(table_name, base)
-          Mysql2Rgeo::Table.new(table_name, base)
         end
 
         # override
@@ -171,10 +171,15 @@ module ActiveRecord
             type_format: :wkb11,
             emit_ewkb_srid: false
           ).generate(geometry)
-          return wkb.upcase unless spatial[:geographic]
+          wkb = wkb.upcase
+          return wkb unless spatial[:geographic]
 
-          srid_hex = [spatial[:srid].to_i].pack("V").unpack1("H*")
-          "#{srid_hex}#{wkb}".upcase
+          endian = wkb[0, 2]
+          type_hex = wkb[2, 8]
+          body = wkb[10..]
+          type = [type_hex].pack("H*").unpack1("V") | 0x20000000
+          srid_hex = [spatial[:srid].to_i].pack("V").unpack1("H*").upcase
+          "#{endian}#{[type].pack('V').unpack1('H*').upcase}#{srid_hex}#{body}"
         end
 
         def generation_expression_for(table_name, column_name)

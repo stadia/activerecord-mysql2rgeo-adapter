@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 exclude "test_update_multiple_counters_with_touch:_%i(_updated_at_written_on_)", TRIAGE_MSG
 exclude "test_reset_multiple_counters", TRIAGE_MSG
 exclude "test_increment_counter", TRIAGE_MSG

@@ -41,9 +41,7 @@ module ActiveRecord
             has_z = Regexp.last_match(2).casecmp("z").zero?
             has_m = Regexp.last_match(3).casecmp("m").zero?
           end
-          if params.last =~ /(\d+)/
-            srid = Regexp.last_match(1).to_i
-          end
+          srid = Regexp.last_match(1).to_i if params.last =~ /(\d+)/
         elsif sql_type =~ /\A(geography|geometry)\z/i
           geographic = Regexp.last_match(1).casecmp("geography").zero?
           geo_type = Regexp.last_match(1)
@@ -82,7 +80,7 @@ module ActiveRecord
             has_z: @has_z,
             sql_type: @geographic ? "geography" : "geometry",
             srid: @srid
-        )
+          )
       end
 
       def klass
@@ -118,7 +116,7 @@ module ActiveRecord
       def cast_value(value)
         return if value.nil?
 
-        ::String === value ? parse_wkt(value) : value
+        value.is_a?(::String) ? parse_wkt(value) : value
       end
 
       # convert WKT string into RGeo object
@@ -126,7 +124,7 @@ module ActiveRecord
         marker = string[4, 1]
         if ["\x00", "\x01"].include?(marker)
           @srid = string[0, 4].unpack1(marker == "\x01" ? "V" : "N")
-          RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: @srid).parse(string[4..-1])
+          RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: @srid).parse(string[4..])
         elsif string.match?(/\A[0-9a-fA-F]+\z/)
           original_srid = @srid
           parser = RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: @srid)
@@ -139,9 +137,9 @@ module ActiveRecord
 
           if string[0, 10] =~ /[0-9a-fA-F]{8}0[01]/
             @srid = string[0, 8].to_i(16)
-            @srid = [@srid].pack("V").unpack("N").first if string[9, 1] == "1"
+            @srid = [@srid].pack("V").unpack1("N") if string[9, 1] == "1"
             parser = RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: @srid)
-            return parser.parse([string[8..-1]].pack("H*"))
+            return parser.parse([string[8..]].pack("H*"))
           end
 
           parser.parse([string].pack("H*"))

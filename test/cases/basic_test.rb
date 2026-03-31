@@ -2,25 +2,23 @@
 
 require_relative "../test_helper"
 
-module PostGIS
+module Mysql2Rgeo
   class BasicTest < ActiveSupport::TestCase
     def before
       reset_spatial_store
     end
 
     def test_version
-      refute_nil ActiveRecord::ConnectionAdapters::PostGIS::VERSION
+      refute_nil ActiveRecord::ConnectionAdapters::Mysql2Rgeo::VERSION
     end
 
-    def test_postgis_available
-      assert_equal "PostGIS", SpatialModel.connection.adapter_name
-      assert_equal postgis_version, SpatialModel.connection.postgis_lib_version
-      valid_version = ["2.", "3."].any? { |major_ver| SpatialModel.connection.postgis_lib_version.start_with? major_ver }
-      assert valid_version
+    def test_mysql_spatial_available
+      assert_equal "Mysql2Rgeo", SpatialModel.connection.adapter_name
+      refute_nil database_version
     end
 
     def test_arel_visitor
-      visitor = Arel::Visitors::PostGIS.new(SpatialModel.connection)
+      visitor = Arel::Visitors::Mysql2Rgeo.new(SpatialModel.connection)
       node = RGeo::ActiveRecord::SpatialConstantNode.new("POINT (1.0 2.0)")
       collector = Arel::Collectors::PlainString.new
       visitor.accept(node, collector)
@@ -35,14 +33,13 @@ module PostGIS
       assert_equal "ST_GeomFromText('POINT(-122 47)', 4326, 'axis-order=long-lat')", collector.value
     end
 
-    def test_arel_visitor_will_not_visit_string
-      visitor = Arel::Visitors::PostGIS.new(SpatialModel.connection)
+    def test_arel_visitor_accepts_string_wkt
+      visitor = Arel::Visitors::Mysql2Rgeo.new(SpatialModel.connection)
       node = "POINT (1 2)"
       collector = Arel::Collectors::PlainString.new
 
-      assert_raises(Arel::Visitors::UnsupportedVisitError) do
-        visitor.accept(node, collector)
-      end
+      visitor.accept(node, collector)
+      assert_equal "ST_GeomFromText('POINT (1 2)')", collector.value
     end
 
     def test_set_and_get_point

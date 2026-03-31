@@ -47,6 +47,7 @@ module ActiveRecord
   module ConnectionAdapters
     class Mysql2RgeoAdapter < Mysql2Adapter
       ADAPTER_NAME = "Mysql2Rgeo"
+      MINIMUM_SUPPORTED_VERSION = "8.0.0"
 
       include Mysql2Rgeo::SchemaStatements
 
@@ -71,11 +72,12 @@ module ActiveRecord
           st_polygon:          { type: "polygon" }
         }.freeze
 
-      # http://postgis.17.x6.nabble.com/Default-SRID-td5001115.html
+      # MySQL uses SRID 0 when a spatial column does not declare one explicitly.
       DEFAULT_SRID = 0
 
       def initialize(connection, logger, connection_options, config)
         super
+        verify_supported_database_version!
 
         @visitor = Arel::Visitors::Mysql2Rgeo.new(self)
       end
@@ -166,15 +168,11 @@ module ActiveRecord
       end
 
       def supports_spatial?
-        !mariadb? && version >= "5.7.6"
-      end
-
-      def postgis_lib_version
-        "3.0.mysql2rgeo"
+        !mariadb? && database_version >= MINIMUM_SUPPORTED_VERSION
       end
 
       def adapter_name
-        "PostGIS"
+        ADAPTER_NAME
       end
 
       def quote(value)
@@ -205,6 +203,13 @@ module ActiveRecord
       end
 
       private
+        def verify_supported_database_version!
+          return if database_version >= MINIMUM_SUPPORTED_VERSION
+
+          raise ActiveRecord::ConnectionNotEstablished,
+                "#{ADAPTER_NAME} supports MySQL #{MINIMUM_SUPPORTED_VERSION}+ only (detected #{database_version})"
+        end
+
         def type_map
           emulate_booleans ? TYPE_MAP_WITH_BOOLEAN : TYPE_MAP
         end

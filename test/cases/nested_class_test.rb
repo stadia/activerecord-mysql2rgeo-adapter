@@ -2,7 +2,7 @@
 
 require_relative "../test_helper"
 
-module PostGIS
+module Mysql2Rgeo
   class NestedClassTest < ActiveSupport::TestCase
     module Foo
       def self.table_name_prefix

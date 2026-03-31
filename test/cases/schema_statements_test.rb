@@ -2,12 +2,12 @@
 
 require_relative "../test_helper"
 
-module PostGIS
+module Mysql2Rgeo
   class SchemaStatementsTest < ActiveSupport::TestCase
     def test_initialize_type_map
       initialized_types = SpatialModel.connection.send(:type_map).keys
 
-      # PostGIS types must be initialized first, so
+      # Spatial types must be initialized first, so
       # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter#load_additional_types can use them.
       # https://github.com/rails/rails/blob/8d57cb39a88787bb6cfb7e1c481556ef6d8ede7a/activerecord/lib/active_record/connection_adapters/postgresql_adapter.rb#L593
       assert_equal initialized_types.first(9), %w[

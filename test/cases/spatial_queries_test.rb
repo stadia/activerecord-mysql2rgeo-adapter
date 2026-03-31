@@ -2,7 +2,7 @@
 
 require_relative "../test_helper"
 
-module PostGIS
+module Mysql2Rgeo
   class SpatialQueriesTest < ActiveSupport::TestCase
     def test_query_point
       create_model

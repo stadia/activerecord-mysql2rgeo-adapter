@@ -2,7 +2,7 @@
 
 require_relative "../test_helper"
 
-module PostGIS
+module Mysql2Rgeo
   class DDLTest < ActiveSupport::TestCase
     def test_spatial_column_options
       [
@@ -16,7 +16,7 @@ module PostGIS
         :st_point,
         :st_polygon,
       ].each do |type|
-        assert ActiveRecord::ConnectionAdapters::PostGISAdapter.spatial_column_options(type), type
+        assert ActiveRecord::ConnectionAdapters::Mysql2RgeoAdapter.spatial_column_options(type), type
       end
     end
 
@@ -300,7 +300,7 @@ module PostGIS
       end
       klass.reset_column_information
       # `all` queries column info from the database - it should not be called when klass.columns is called
-      ActiveRecord::ConnectionAdapters::PostGIS::SpatialColumnInfo.any_instance.expects(:all).never
+      ActiveRecord::ConnectionAdapters::Mysql2Rgeo::SpatialColumnInfo.any_instance.expects(:all).never
       # first column is id, second is name
       refute klass.columns[1].spatial?
       assert_nil klass.columns[1].has_z
@@ -329,7 +329,7 @@ module PostGIS
 
     # Ensure virtual column default function works like the Postgres adapter.
     def test_virtual_column_default_function
-      skip "Virtual Columns are not supported in this version of PostGIS" unless SpatialModel.connection.supports_virtual_columns?
+      skip "Virtual columns are not supported by this MySQL version" unless SpatialModel.connection.supports_virtual_columns?
       klass.connection.create_table(:spatial_models, force: true) do |t|
         t.integer :column1
         t.virtual :column2, type: :integer, as: "(column1 + 1)", stored: true
@@ -391,7 +391,7 @@ module PostGIS
     end
 
     def test_generated_geometry_column
-      skip "Virtual Columns are not supported in this version of PostGIS" unless SpatialModel.connection.supports_virtual_columns?
+      skip "Virtual columns are not supported by this MySQL version" unless SpatialModel.connection.supports_virtual_columns?
       klass.connection.create_table(:spatial_models, force: true) do |t|
         t.st_point :coordinates, limit: { srid: 4326 }
         t.virtual :generated_buffer, type: :st_polygon, limit: { srid: 4326 }, as: "ST_Buffer(coordinates, 10)", stored: true
@@ -417,8 +417,8 @@ module PostGIS
       klass.connection.select_value(geo_column_sql("geography_columns", klass.table_name)).to_i
     end
 
-    def geo_column_sql(postgis_view, table_name)
-      "SELECT COUNT(*) FROM #{postgis_view} WHERE f_table_name='#{table_name}'"
+    def geo_column_sql(metadata_view, table_name)
+      "SELECT COUNT(*) FROM #{metadata_view} WHERE f_table_name='#{table_name}'"
     end
   end
 end

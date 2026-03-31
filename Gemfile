@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in activerecord-postgis-adapter.gemspec
+# Specify your gem's dependencies in activerecord-mysql2rgeo-adapter.gemspec
 gemspec
 
 gem "mysql2", platform: :ruby

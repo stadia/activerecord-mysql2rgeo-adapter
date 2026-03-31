@@ -2,7 +2,7 @@
 
 require_relative "../test_helper"
 
-module PostGIS
+module Mysql2Rgeo
   class Foo < ActiveRecord::Base
     has_one :spatial_foo
   end

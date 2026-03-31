@@ -55,28 +55,14 @@ end
 
 module ActiveRecord
   module ConnectionAdapters
-    PostGISAdapter = Mysql2RgeoAdapter unless const_defined?(:PostGISAdapter)
-
-    module PostGIS
-      VERSION = Mysql2Rgeo::VERSION unless const_defined?(:VERSION)
+    module Mysql2Rgeo
+      VERSION = ::ActiveRecord::ConnectionAdapters::Mysql2Rgeo::VERSION unless const_defined?(:VERSION)
 
       module OID
         Spatial = ActiveRecord::Type::Spatial unless const_defined?(:Spatial)
       end
 
-      SpatialColumnInfo = Mysql2Rgeo::SpatialColumnInfo unless const_defined?(:SpatialColumnInfo)
-    end
-  end
-end
-
-module Arel
-  module Visitors
-    unless const_defined?(:PostGIS)
-      class PostGIS < Mysql2Rgeo
-        def visit_String(*)
-          raise Arel::Visitors::UnsupportedVisitError, "Cannot visit String"
-        end
-      end
+      SpatialColumnInfo = ::ActiveRecord::ConnectionAdapters::Mysql2Rgeo::SpatialColumnInfo unless const_defined?(:SpatialColumnInfo)
     end
   end
 end
@@ -123,28 +109,28 @@ if ENV["ARCONN"]
   # only install activerecord schema if we need it
   require "cases/helper"
 
-  def load_postgis_specific_schema
+  def load_mysql_specific_schema
     original_stdout = $stdout
     $stdout = StringIO.new
 
-    load "schema/postgis_specific_schema.rb"
+    load "schema/mysql_specific_schema.rb"
 
     ActiveRecord::FixtureSet.reset_cache
   ensure
     $stdout = original_stdout
   end
 
-  load_postgis_specific_schema
+  load_mysql_specific_schema
 
   module ARTestCaseOverride
     def with_postgresql_datetime_type(type)
-      adapter = ActiveRecord::ConnectionAdapters::PostGISAdapter
+      adapter = ActiveRecord::ConnectionAdapters::Mysql2RgeoAdapter
       adapter.remove_instance_variable(:@native_database_types) if adapter.instance_variable_defined?(:@native_database_types)
       datetime_type_was = adapter.datetime_type
       adapter.datetime_type = type
       yield
     ensure
-      adapter = ActiveRecord::ConnectionAdapters::PostGISAdapter
+      adapter = ActiveRecord::ConnectionAdapters::Mysql2RgeoAdapter
       adapter.datetime_type = datetime_type_was
       adapter.remove_instance_variable(:@native_database_types) if adapter.instance_variable_defined?(:@native_database_types)
     end
@@ -223,10 +209,6 @@ module ActiveSupport
 
     def database_version
       @database_version ||= SpatialModel.connection.select_value("SELECT version()")
-    end
-
-    def postgis_version
-      @postgis_version ||= SpatialModel.connection.postgis_lib_version
     end
 
     def factory(srid: 3785)

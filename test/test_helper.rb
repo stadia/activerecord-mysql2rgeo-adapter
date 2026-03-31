@@ -13,6 +13,7 @@ require "activerecord-mysql2rgeo-adapter"
 require "timeout"
 
 TRIAGE_MSG = "Needs triage and fixes. See #378"
+TEST_GEOMETRIC_SRID = 3857
 
 module ActiveRecord
   module Type
@@ -144,7 +145,7 @@ module ActiveSupport
       @database_version ||= SpatialModel.connection.select_value("SELECT version()")
     end
 
-    def factory(srid: 3785)
+    def factory(srid: TEST_GEOMETRIC_SRID)
       RGeo::Cartesian.preferred_factory(srid: srid)
     end
 

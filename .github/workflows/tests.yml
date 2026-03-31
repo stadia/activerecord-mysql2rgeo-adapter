@@ -19,10 +19,11 @@ jobs:
       BUNDLE_GEMFILE: ${{matrix.gemfile}}
     strategy:
       matrix:
-        ruby: ['3.3', '3.2', '3.1']
+        ruby: ['3.2', '3.3', '3.4']
         gemfile:
-          - gemfiles/ar72.gemfile
-        mysql: ['5.7']
+          - gemfiles/ar80.gemfile
+          - gemfiles/ar81.gemfile
+        mysql: ['8.0']
     steps:
       - name: Set Up Actions
         uses: actions/checkout@v4

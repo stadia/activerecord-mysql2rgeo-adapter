@@ -14,6 +14,12 @@ module ActiveRecord
         @geo_type, @srid = self.class.parse_sql_type(sql_type)
       end
 
+      # Required for Rails 8.0 deduplication mechanism
+      def -@
+        return self if frozen?
+        dup.freeze
+      end
+
       # sql_type: geometry, geometry(Point), geometry(Point,4326), ...
       #
       # returns [geo_type, srid]

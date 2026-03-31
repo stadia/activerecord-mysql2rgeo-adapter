@@ -17,7 +17,14 @@ module ActiveRecord # :nodoc:
             # @geometric_type = geo_type_from_sql_type(sql_type)
             build_from_sql_type(sql_type_metadata.sql_type)
           end
-          super(name, cast_type, default, sql_type_metadata, null, default_function, collation: collation, comment: comment)
+          if ActiveRecord.version >= Gem::Version.new("8.1.0")
+            super(name, cast_type, default, sql_type_metadata, null, default_function, collation: collation, comment: comment)
+          else
+            # AR 8.0 Column#initialize doesn't have default_function parameter
+            super(name, cast_type, default, sql_type_metadata, null, collation: collation, comment: comment)
+            # Ensure @sql_type_metadata is preserved after super call in AR 8.0
+            @sql_type_metadata = sql_type_metadata
+          end
           if spatial?
             if @srid
               @limit = { type: geometric_type.type_name.underscore, srid: @srid }

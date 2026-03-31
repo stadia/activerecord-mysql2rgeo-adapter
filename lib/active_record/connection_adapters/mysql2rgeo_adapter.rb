@@ -22,6 +22,12 @@ require "active_record/type/spatial"
 
 # :startdoc:
 
+ActiveRecord::ConnectionAdapters.register(
+  "mysql2rgeo",
+  "ActiveRecord::ConnectionAdapters::Mysql2RgeoAdapter",
+  "active_record/connection_adapters/mysql2rgeo_adapter"
+)
+
 module ActiveRecord
   module ConnectionHandling # :nodoc:
     # Establishes a connection to the database that's used by all Active Record objects.
@@ -52,18 +58,25 @@ module ActiveRecord
 
       SPATIAL_COLUMN_OPTIONS =
         {
+          geography:           { type: "geometry", geographic: true },
           geometry:            {},
           geometrycollection:  {},
+          geometry_collection: { type: "geometrycollection" },
           linestring:          {},
+          line_string:         { type: "linestring" },
           multilinestring:     {},
+          multi_line_string:   { type: "multilinestring" },
           multipoint:          {},
+          multi_point:         { type: "multipoint" },
           multipolygon:        {},
+          multi_polygon:       { type: "multipolygon" },
           spatial:             { type: "geometry" },
           point:               {},
-          polygon:             {}
+          polygon:             {},
+          st_point:            { type: "point" },
+          st_polygon:          { type: "polygon" }
         }.freeze
 
-      # http://postgis.17.x6.nabble.com/Default-SRID-td5001115.html
       DEFAULT_SRID = 0
 
       def initialize(...)
@@ -86,7 +99,10 @@ module ActiveRecord
         super.merge(
           geometry:            { name: "geometry" },
           geometrycollection:  { name: "geometrycollection" },
+          line_string:         { name: "linestring" },
           linestring:          { name: "linestring" },
+          st_point:            { name: "point" },
+          st_polygon:          { name: "polygon" },
           multi_line_string:   { name: "multilinestring" },
           multi_point:         { name: "multipoint" },
           multi_polygon:       { name: "multipolygon" },
@@ -102,20 +118,51 @@ module ActiveRecord
           def initialize_type_map(m)
             super
 
-            %w[
-              geometry
-              geometrycollection
-              point
-              linestring
-              polygon
-              multipoint
-              multilinestring
-              multipolygon
-            ].each do |geo_type|
-              m.register_type(geo_type) do |sql_type|
+            {
+              "geography" => "geometry",
+              "geometry" => "geometry",
+              "geometry_collection" => "geometrycollection",
+              "line_string" => "linestring",
+              "multi_line_string" => "multilinestring",
+              "multi_point" => "multipoint",
+              "multi_polygon" => "multipolygon",
+              "st_point" => "point",
+              "st_polygon" => "polygon",
+            }.each do |registered_type, geo_type|
+              m.register_type(registered_type) do |sql_type|
+                Type::Spatial.new(sql_type.to_s, geo_type: geo_type)
+              end
+            end
+
+            [
+              /\Ageometry(?:\(.*\))?\z/i,
+              /\Ageography(?:\(.*\))?\z/i,
+              /\Apoint(?:\s.*)?\z/i,
+              /\Alinestring(?:\s.*)?\z/i,
+              /\Apolygon(?:\s.*)?\z/i,
+              /\Amultipoint(?:\s.*)?\z/i,
+              /\Amultilinestring(?:\s.*)?\z/i,
+              /\Amultipolygon(?:\s.*)?\z/i,
+              /\Ageometrycollection(?:\s.*)?\z/i,
+            ].each do |pattern|
+              m.register_type(pattern) do |sql_type|
                 Type::Spatial.new(sql_type.to_s)
               end
             end
+
+            {
+              st_point: "point",
+              st_polygon: "polygon",
+              line_string: "linestring",
+              multi_line_string: "multilinestring",
+              multi_point: "multipoint",
+              multi_polygon: "multipolygon",
+            }.each do |alias_type, geo_type|
+              ActiveRecord::Type.register(alias_type) do |_, **kwargs|
+                Type::Spatial.new(geo_type, geo_type: geo_type, **kwargs)
+              end
+            end
+
           end
       end
 
@@ -128,17 +175,39 @@ module ActiveRecord
         !mariadb? && version >= "5.7.6"
       end
 
+      def supports_partitioned_indexes?
+        false
+      end
+
+      def adapter_name
+        "Mysql2Rgeo"
+      end
+
       def quote(value)
         dbval = value.try(:value_for_database) || value
         if RGeo::Feature::Geometry.check_type(dbval)
-          "ST_GeomFromWKB(0x#{RGeo::WKRep::WKBGenerator.new(hex_format: true, little_endian: true).generate(dbval)},#{dbval.srid})"
+          wkt = RGeo::WKRep::WKTGenerator.new(tag_format: :wkt11, emit_ewkt_srid: false).generate(dbval)
+          if dbval.srid == 4326
+            "ST_GeomFromText(#{super(wkt)}, #{dbval.srid}, 'axis-order=long-lat')"
+          else
+            "ST_GeomFromText(#{super(wkt)}, #{dbval.srid})"
+          end
         else
           super
         end
       end
 
-      def with_connection
-        yield self
+      def quote_default_expression(value, column) # :nodoc:
+        return super unless column.respond_to?(:spatial?) && column.spatial?
+
+        value = lookup_cast_type(column.sql_type).serialize(value)
+        hex = RGeo::WKRep::WKBGenerator.new(
+          hex_format: true,
+          little_endian: true,
+          type_format: :wkb11,
+          emit_ewkb_srid: false
+        ).generate(value).upcase
+        "(ST_GeomFromWKB(x'#{hex}', #{value.srid}))"
       end
 
       private

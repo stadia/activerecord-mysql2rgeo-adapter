@@ -1,3 +1,15 @@
+### 8.0.4 / 2026-03-31
+
+* Sync the upstream ActiveRecord 10.0-stable test tree and keep the MySQL bootstrap in-repo
+* Remove stale PostgreSQL- and view-specific excludes, and document the remaining MySQL-specific test gaps
+* Keep MySQL 8.0 and 8.4 as the maintained support targets
+
+### 7.3.0 / 2026-03-30
+
+* Sync the upstream ActiveRecord 9.0-stable test tree and make the suite pass on MySQL 8.0
+* Add MySQL 8.4 axis-order coverage and compatibility fixes for geographic spatial queries
+* Document MySQL 8.0 and 8.4 as the maintained support targets
+
 ### 5.2.2 / 2018-12-02
 
 * Freeze strings

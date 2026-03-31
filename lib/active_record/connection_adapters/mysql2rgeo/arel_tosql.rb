@@ -28,12 +28,10 @@ module Arel # :nodoc:
 
       def visit_String(node, collector)
         node, srid = Mysql2Rgeo.parse_node(node)
-        collector << if srid == 0
-                       "#{st_func('ST_WKTToSQL')}(#{quote(node)})"
-                     else
-                       "#{st_func('ST_WKTToSQL')}(#{quote(node)}, #{srid})"
-                     end
+        collector << spatial_constant_sql(node, srid)
       end
+      alias visit_RGeo_Feature_Instance visit_String
+      alias visit_RGeo_Cartesian_BoundingBox visit_String
 
       def visit_RGeo_ActiveRecord_SpatialNamedFunction(node, collector)
         aggregate(st_func(node.name), node, collector)
@@ -43,21 +41,28 @@ module Arel # :nodoc:
         case node
         when String
           node, srid = Mysql2Rgeo.parse_node(node)
-          collector << if srid == 0
-                         "#{st_func('ST_WKTToSQL')}(#{quote(node)})"
-                       else
-                         "#{st_func('ST_WKTToSQL')}(#{quote(node)}, #{srid})"
-                       end
+          collector << spatial_constant_sql(node, srid)
         when RGeo::Feature::Instance
-          collector << visit_RGeo_Feature_Instance(node, collector)
+          visit_RGeo_Feature_Instance(node, collector)
         when RGeo::Cartesian::BoundingBox
-          collector << visit_RGeo_Cartesian_BoundingBox(node, collector)
+          visit_RGeo_Cartesian_BoundingBox(node, collector)
         else
           visit(node, collector)
         end
       end
 
       def self.parse_node(node)
+        if RGeo::Feature::Instance === node
+          wkt = RGeo::WKRep::WKTGenerator.new(tag_format: :wkt11, emit_ewkt_srid: false).generate(node)
+          return [wkt, node.srid]
+        end
+
+        if RGeo::Cartesian::BoundingBox === node
+          geometry = node.to_geometry
+          wkt = RGeo::WKRep::WKTGenerator.new(tag_format: :wkt11, emit_ewkt_srid: false).generate(geometry)
+          return [wkt, geometry.srid]
+        end
+
         value, srid = nil, 0
         if node =~ /.*;.*$/i
           params = Regexp.last_match(0).split(";")
@@ -75,6 +80,18 @@ module Arel # :nodoc:
           value = node
         end
         [value, srid]
+      end
+
+      private
+
+      def spatial_constant_sql(node, srid)
+        if srid == 0
+          "#{st_func('ST_WKTToSQL')}(#{quote(node)})"
+        elsif srid == 4326
+          "#{st_func('ST_WKTToSQL')}(#{quote(node)}, #{srid}, 'axis-order=long-lat')"
+        else
+          "#{st_func('ST_WKTToSQL')}(#{quote(node)}, #{srid})"
+        end
       end
     end
   end

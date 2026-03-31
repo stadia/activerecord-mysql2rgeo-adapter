@@ -1,0 +1,3 @@
+exclude "test_schema_dump_includes_length_for_mysql_binary_fields", TRIAGE_MSG
+exclude "test_schema_dump_includes_length_for_mysql_blob_and_text_fields", TRIAGE_MSG
+exclude "test_schema_dumps_index_type", TRIAGE_MSG

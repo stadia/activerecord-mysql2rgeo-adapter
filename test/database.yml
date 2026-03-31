@@ -1,7 +1,21 @@
-adapter: mysql2rgeo
-host: <%= ENV["MYSQL_HOST"] || "127.0.0.1" %>
-port: <%= ENV["MYSQL_PORT"] || "3306" %>
-database: <%= ENV["MYSQL_DATABASE"] || "mysql2rgeo_adapter_test" %>
-username: <%= ENV["MYSQL_USER"] || "root" %>
-password: <%= ENV["MYSQL_PASSWORD"] || "" %>
-encoding: utf8mb4
+connections:
+  mysql2rgeo:
+    arunit:
+      host: <%= ENV["MYSQL_HOST"] || "127.0.0.1" %>
+      port: <%= ENV["MYSQL_PORT"] || "3306" %>
+      database: <%= ENV["MYSQL_DATABASE"] || "mysql2rgeo_adapter_test" %>
+      username: <%= ENV["MYSQL_USER"] || "root" %>
+      password: <%= ENV["MYSQL_PASSWORD"] || "" %>
+    arunit2:
+      host: <%= ENV["MYSQL_HOST"] || "127.0.0.1" %>
+      port: <%= ENV["MYSQL_PORT"] || "3306" %>
+      database: <%= ENV["MYSQL_DATABASE"] || "mysql2rgeo_adapter_test" %>
+      username: <%= ENV["MYSQL_USER"] || "root" %>
+      password: <%= ENV["MYSQL_PASSWORD"] || "" %>
+    arunit_without_prepared_statements:
+      prepared_statements: false
+      host: <%= ENV["MYSQL_HOST"] || "127.0.0.1" %>
+      port: <%= ENV["MYSQL_PORT"] || "3306" %>
+      database: <%= ENV["MYSQL_DATABASE"] || "mysql2rgeo_adapter_test" %>
+      username: <%= ENV["MYSQL_USER"] || "root" %>
+      password: <%= ENV["MYSQL_PASSWORD"] || "" %>

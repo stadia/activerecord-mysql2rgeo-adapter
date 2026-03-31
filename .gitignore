@@ -9,3 +9,6 @@ Gemfile.lock
 /test/database_local.yml
 .idea
 coverage
+debug.log
+/test/db/*
+/test/storage/*

@@ -4,14 +4,28 @@ on:
     branches:
       - master
   pull_request:
+    types: [opened, reopened, synchronize]
   workflow_dispatch:
 
+concurrency:
+  group: "${{ github.workflow }} @ ${{ github.ref }}"
+  cancel-in-progress: true
+
 jobs:
+  test_results:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    name: Test Results
+    needs: [test-ubuntu-ruby]
+    steps:
+      - run: '[[ "${{ needs.test-ubuntu-ruby.result }}" == "success" ]]'
+
   test-ubuntu-ruby:
+    name: Ruby ${{ matrix.ruby }} / MySQL ${{ matrix.mysql }}
     runs-on: ubuntu-latest
     services:
       mysql:
-        image: mysql:${{matrix.mysql}}
+        image: mysql:${{ matrix.mysql }}
         ports:
           - 3306:3306
         env:
@@ -23,11 +37,10 @@ jobs:
     env:
       BUNDLE_GEMFILE: ${{matrix.gemfile}}
     strategy:
+      fail-fast: false
       matrix:
-        ruby: [ '3.3', '3.2', '3.1' ]
-        gemfile:
-          - gemfiles/ar72.gemfile
-        mysql: [ '5.7' ]
+        ruby: [ ruby-head, '3.2', '3.1', '3.0' ]
+        mysql: [ '8.0', '8.4' ] # supported MySQL versions
     steps:
       - name: Set Up Actions
         uses: actions/checkout@v4
@@ -38,8 +51,6 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-      - name: Shutdown Ubuntu MySQL (SUDO)
-        run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
       - name: Create Database
         run: |
           mysql -uroot -h127.0.0.1 -ppassword -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test;'
@@ -49,3 +60,5 @@ jobs:
         env:
           MYSQL_HOST: 127.0.0.1
           MYSQL_PASSWORD: password
+          TESTOPTS: --profile=3
+          TEST_TIMEOUT: 30

@@ -1,0 +1,18 @@
+# frozen_string_literal: true
+
+require_relative "../test_helper"
+
+module Mysql2Rgeo
+  class SpatialQueriesTest < ActiveSupport::TestCase
+    def test_ignore_tables
+      expect_to_ignore = %w[
+        layer
+        raster_columns
+        raster_overviews
+        spatial_ref_sys
+        topology
+      ]
+      assert_equal expect_to_ignore, ::ActiveRecord::SchemaDumper.ignore_tables
+    end
+  end
+end

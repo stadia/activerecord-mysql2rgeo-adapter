@@ -11,6 +11,7 @@ require "byebug" if ENV["BYEBUG"]
 require "activerecord-mysql2rgeo-adapter"
 
 TRIAGE_MSG = "Needs triage and fixes. See #378"
+TEST_GEOMETRIC_SRID = 3857
 
 module ActiveRecord
   module Type
@@ -90,14 +91,6 @@ else
 
   ActiveRecord::Base.establish_test_connection
 
-  conn = ActiveRecord::Base.connection
-  conn.execute <<~SQL
-    CREATE SPATIAL REFERENCE SYSTEM IF NOT EXISTS 3785
-    NAME 'WGS 84 / Popular Visualisation Sphere'
-    ORGANIZATION 'EPSG' IDENTIFIED BY 3785
-    DEFINITION 'PROJCS["WGS 84 / Popular Visualisation Sphere",GEOGCS["WGS 84",DATUM["World Geodetic System 1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.017453292519943278,AUTHORITY["EPSG","9122"]],AXIS["Lat",NORTH],AXIS["Lon",EAST],AUTHORITY["EPSG","4326"]],PROJECTION["Popular Visualisation Pseudo Mercator",AUTHORITY["EPSG","1024"]],PARAMETER["Latitude of natural origin",0,AUTHORITY["EPSG","8801"]],PARAMETER["Longitude of natural origin",0,AUTHORITY["EPSG","8802"]],PARAMETER["False easting",0,AUTHORITY["EPSG","8806"]],PARAMETER["False northing",0,AUTHORITY["EPSG","8807"]],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["X",EAST],AXIS["Y",NORTH],AUTHORITY["EPSG","3785"]]'
-    DESCRIPTION 'Added for upstream compatibility'
-  SQL
 end
 
 ActiveRecord::SchemaDumper.ignore_tables = %w[
@@ -134,7 +127,7 @@ module ActiveSupport
       @database_version ||= SpatialModel.connection.select_value("SELECT version()")
     end
 
-    def factory(srid: 3785)
+    def factory(srid: TEST_GEOMETRIC_SRID)
       RGeo::Cartesian.preferred_factory(srid: srid)
     end
 

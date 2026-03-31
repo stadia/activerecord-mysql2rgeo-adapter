@@ -42,7 +42,7 @@ module Mysql2Rgeo
       assert_nil obj.latlon
       obj.latlon = factory.point(1.0, 2.0)
       assert_equal factory.point(1.0, 2.0), obj.latlon
-      assert_equal 3785, obj.latlon.srid
+      assert_equal TEST_GEOMETRIC_SRID, obj.latlon.srid
     end
 
     def test_set_and_get_point_from_wkt
@@ -51,7 +51,7 @@ module Mysql2Rgeo
       assert_nil obj.latlon
       obj.latlon = "POINT(1 2)"
       assert_equal factory.point(1.0, 2.0), obj.latlon
-      assert_equal 3785, obj.latlon.srid
+      assert_equal TEST_GEOMETRIC_SRID, obj.latlon.srid
     end
 
     def test_save_and_load_point
@@ -62,7 +62,7 @@ module Mysql2Rgeo
       id = obj.id
       obj2 = SpatialModel.find(id)
       assert_equal factory.point(1.0, 2.0), obj2.latlon
-      assert_equal 3785, obj2.latlon.srid
+      assert_equal TEST_GEOMETRIC_SRID, obj2.latlon.srid
       # assert_equal true, RGeo::Geos.is_geos?(obj2.latlon)
     end
 
@@ -86,7 +86,7 @@ module Mysql2Rgeo
       id = obj.id
       obj2 = SpatialModel.find(id)
       assert_equal factory.point(1.0, 2.0), obj2.latlon
-      assert_equal 3785, obj2.latlon.srid
+      assert_equal TEST_GEOMETRIC_SRID, obj2.latlon.srid
     end
 
     def test_set_point_bad_wkt
@@ -153,7 +153,7 @@ module Mysql2Rgeo
       klass = SpatialModel
       klass.lease_connection.create_table(:spatial_models, force: true) do |t|
         t.column(:shape, :geometry)
-        t.line_string(:path, srid: 3785)
+        t.line_string(:path, srid: TEST_GEOMETRIC_SRID)
         t.st_point(:latlon, geographic: true)
       end
       klass.reset_column_information
@@ -212,7 +212,7 @@ module Mysql2Rgeo
 
     def create_model
       SpatialModel.lease_connection.create_table(:spatial_models, force: true) do |t|
-        t.column "latlon", :st_point, srid: 3785
+        t.column "latlon", :st_point, srid: TEST_GEOMETRIC_SRID
         t.column "latlon_geo", :st_point, srid: 4326, geographic: true
         t.column "default_latlon", :st_point, srid: 0, default: "POINT(0.0 0.0)"
       end

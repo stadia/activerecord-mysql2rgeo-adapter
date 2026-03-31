@@ -15,7 +15,7 @@ module Mysql2Rgeo
 
     def test_nested_model
       Foo::Bar.lease_connection.create_table(:foo_bars, force: true) do |t|
-        t.column "latlon", :st_point, srid: 3785
+        t.column "latlon", :st_point, srid: TEST_GEOMETRIC_SRID
       end
       assert_empty Foo::Bar.all
     end

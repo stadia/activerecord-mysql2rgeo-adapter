@@ -228,7 +228,7 @@ module Mysql2Rgeo
 
     def test_create_polygon_with_options
       klass.lease_connection.create_table(:spatial_models, force: true) do |t|
-        t.column "region", :st_polygon, has_m: true, srid: 3785
+        t.column "region", :st_polygon, has_m: true, srid: TEST_GEOMETRIC_SRID
       end
       klass.reset_column_information
       assert_equal 1, count_geometry_columns
@@ -237,8 +237,8 @@ module Mysql2Rgeo
       assert_equal false, col.geographic?
       assert_equal false, col.has_z?
       assert_equal true, col.has_m?
-      assert_equal 3785, col.srid
-      assert_equal({ has_m: true, type: "st_polygon", srid: 3785 }, col.limit)
+      assert_equal TEST_GEOMETRIC_SRID, col.srid
+      assert_equal({ has_m: true, type: "st_polygon", srid: TEST_GEOMETRIC_SRID }, col.limit)
       klass.lease_connection.drop_table(:spatial_models)
       assert_equal 0, count_geometry_columns
     end

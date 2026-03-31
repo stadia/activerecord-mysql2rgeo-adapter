@@ -1,4 +1,4 @@
-### Unreleased
+### 8.0.4 / 2026-03-31
 
 * Sync the upstream ActiveRecord 10.0-stable test tree and keep the MySQL bootstrap in-repo
 * Remove stale PostgreSQL- and view-specific excludes, and document the remaining MySQL-specific test gaps

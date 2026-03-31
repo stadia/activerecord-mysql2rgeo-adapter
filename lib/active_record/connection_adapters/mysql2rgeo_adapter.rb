@@ -34,6 +34,7 @@ module ActiveRecord
     def mysql2rgeo_connection(config)
       config = config.symbolize_keys
       config[:flags] ||= 0
+      config[:database_timezone] ||= ConnectionAdapters::AbstractAdapter.validate_default_timezone(config[:default_timezone])
 
       if config[:flags].is_a? Array
         config[:flags].push "FOUND_ROWS"
@@ -96,23 +97,36 @@ module ActiveRecord
       def native_database_types
         # Add spatial types
         # Reference: https://dev.mysql.com/doc/refman/5.6/en/spatial-type-overview.html
-        super.merge(
-          geometry: { name: "geometry" },
-          geometrycollection: { name: "geometrycollection" },
-          line_string: { name: "linestring" },
-          linestring: { name: "linestring" },
-          st_point: { name: "point" },
-          st_polygon: { name: "polygon" },
-          multi_line_string: { name: "multilinestring" },
-          multi_point: { name: "multipoint" },
-          multi_polygon: { name: "multipolygon" },
-          spatial: { name: "geometry" },
-          point: { name: "point" },
-          polygon: { name: "polygon" }
-        )
+        self.class.native_database_types
       end
 
       class << self
+        def native_database_types
+          super.merge(
+            geography: { name: "geometry" },
+            geometry: { name: "geometry" },
+            geometrycollection: { name: "geometrycollection" },
+            line_string: { name: "linestring" },
+            linestring: { name: "linestring" },
+            st_point: { name: "point" },
+            st_polygon: { name: "polygon" },
+            multi_line_string: { name: "multilinestring" },
+            multi_point: { name: "multipoint" },
+            multi_polygon: { name: "multipolygon" },
+            spatial: { name: "geometry" },
+            point: { name: "point" },
+            polygon: { name: "polygon" }
+          )
+        end
+
+        def extended_type_map(emulate_booleans:, default_timezone: nil)
+          Type::TypeMap.new(emulate_booleans ? TYPE_MAP_WITH_BOOLEAN : TYPE_MAP).tap do |m|
+            register_class_with_precision m, /\A[^(]*time/i, Type::Time, timezone: default_timezone
+            register_class_with_precision m, /\A[^(]*datetime/i, Type::DateTime, timezone: default_timezone
+            m.alias_type(/\A[^(]*timestamp/i, "datetime")
+          end
+        end
+
         private
 
         def initialize_type_map(m)
@@ -212,7 +226,13 @@ module ActiveRecord
       private
 
       def type_map
-        emulate_booleans ? TYPE_MAP_WITH_BOOLEAN : TYPE_MAP
+        if key = extended_type_map_key
+          self.class::EXTENDED_TYPE_MAPS.compute_if_absent(key) do
+            self.class.extended_type_map(**key)
+          end
+        else
+          emulate_booleans ? TYPE_MAP_WITH_BOOLEAN : TYPE_MAP
+        end
       end
     end
   end

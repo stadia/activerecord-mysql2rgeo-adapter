@@ -4,8 +4,15 @@ module ActiveRecord # :nodoc:
   module ConnectionAdapters # :nodoc:
     module Mysql2Rgeo # :nodoc:
       class SpatialColumn < ConnectionAdapters::MySQL::Column # :nodoc:
-        def initialize(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil,
+        def initialize(name, cast_type, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil,
 spatial: nil, array: false, **)
+          if default.respond_to?(:sql_type) && (sql_type_metadata.nil? || sql_type_metadata == true || sql_type_metadata == false)
+            null = sql_type_metadata unless sql_type_metadata.nil?
+            sql_type_metadata = default
+            default = cast_type
+            cast_type = nil
+          end
+
           @sql_type_metadata = sql_type_metadata
           @array = array
           @geographic = !!(sql_type_metadata&.sql_type =~ /geography\(/i)
@@ -27,7 +34,7 @@ spatial: nil, array: false, **)
             # @geometric_type = geo_type_from_sql_type(sql_type)
             build_from_sql_type(sql_type_metadata.sql_type)
           end
-          super(name, default, sql_type_metadata, null, default_function, collation: collation, comment: comment)
+          super(name, cast_type, default, sql_type_metadata, null, default_function, collation: collation, comment: comment)
           return unless spatial?
           return unless @srid
 

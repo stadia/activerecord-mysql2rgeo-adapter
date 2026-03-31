@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+
+$:.unshift(File.expand_path("../lib", __dir__))
+
+# require "bundler/setup"
+# Bundler.require :development
+#
+require "activerecord-mysql2rgeo-adapter"
+
+db_name = "activerecord_mysql2rgeo_adapter_console"
+db_host = ENV["MYSQL_HOST"] || "127.0.0.1"
+db_port = ENV["MYSQL_PORT"] || "3306"
+db_user = ENV["MYSQL_USER"] || "root"
+db_password = ENV["MYSQL_PASSWORD"] || ""
+
+mysql_env = db_password.empty? ? {} : { "MYSQL_PWD" => db_password }
+mysql_args = ["mysql", "--host", db_host, "--port", db_port, "--user", db_user]
+
+system(mysql_env, *mysql_args, "-e", "DROP DATABASE IF EXISTS `#{db_name}`", exception: true)
+system(mysql_env, *mysql_args, "-e", "CREATE DATABASE `#{db_name}`", exception: true)
+
+ActiveRecord::Base.establish_connection(
+  adapter: "mysql2rgeo",
+  host: db_host,
+  port: db_port,
+  database: db_name,
+  username: db_user,
+  password: db_password
+)
+
+class Country < ActiveRecord::Base
+end
+
+ActiveRecord::Schema.define do
+  create_table(:countries) do |t|
+    t.st_polygon(:area, srid: 4326)
+    t.string(:name)
+  end
+end
+
+require "irb"
+IRB.start(__FILE__)

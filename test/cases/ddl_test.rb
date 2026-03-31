@@ -8,16 +8,16 @@ module Mysql2Rgeo
     include ActiveRecord::Assertions::QueryAssertions
 
     def test_spatial_column_options
-      [
-        :geography,
-        :geometry,
-        :geometry_collection,
-        :line_string,
-        :multi_line_string,
-        :multi_point,
-        :multi_polygon,
-        :st_point,
-        :st_polygon,
+      %i[
+        geography
+        geometry
+        geometry_collection
+        line_string
+        multi_line_string
+        multi_point
+        multi_polygon
+        st_point
+        st_polygon
       ].each do |type|
         assert ActiveRecord::ConnectionAdapters::Mysql2RgeoAdapter.spatial_column_options(type), type
       end
@@ -315,7 +315,9 @@ module Mysql2Rgeo
 
     # Ensure virtual column default function works like the Postgres adapter.
     def test_virtual_column_default_function
-      skip "Virtual columns are not supported by this MySQL version" unless SpatialModel.lease_connection.supports_virtual_columns?
+      unless SpatialModel.lease_connection.supports_virtual_columns?
+        skip "Virtual columns are not supported by this MySQL version"
+      end
       klass.lease_connection.create_table(:spatial_models, force: true) do |t|
         t.integer :column1
         t.virtual :column2, type: :integer, as: "(column1 + 1)", stored: true
@@ -367,7 +369,9 @@ module Mysql2Rgeo
     end
 
     def test_generated_geometry_column
-      skip "Virtual columns are not supported by this MySQL version" unless SpatialModel.lease_connection.supports_virtual_columns?
+      unless SpatialModel.lease_connection.supports_virtual_columns?
+        skip "Virtual columns are not supported by this MySQL version"
+      end
       klass.lease_connection.create_table(:spatial_models, force: true) do |t|
         t.st_point :coordinates, limit: { srid: 4326 }
         t.virtual :generated_buffer, type: :st_polygon, limit: { srid: 4326 }, as: "ST_Buffer(coordinates, 10)", stored: true
@@ -386,15 +390,25 @@ module Mysql2Rgeo
     end
 
     def count_geometry_columns
-      klass.lease_connection.select_value(geo_column_sql("geometry_columns", klass.table_name)).to_i
+      klass.lease_connection.select_value(geo_column_sql(geographic: false, table_name: klass.table_name)).to_i
     end
 
     def count_geography_columns
-      klass.lease_connection.select_value(geo_column_sql("geography_columns", klass.table_name)).to_i
+      klass.lease_connection.select_value(geo_column_sql(geographic: true, table_name: klass.table_name)).to_i
     end
 
-    def geo_column_sql(metadata_view, table_name)
-      "SELECT COUNT(*) FROM #{metadata_view} WHERE f_table_name='#{table_name}'"
+    def geo_column_sql(geographic:, table_name:)
+      <<~SQL.squish
+        SELECT COUNT(*)
+        FROM information_schema.ST_GEOMETRY_COLUMNS g
+        JOIN information_schema.COLUMNS c
+          ON c.TABLE_SCHEMA = g.TABLE_SCHEMA
+         AND c.TABLE_NAME = g.TABLE_NAME
+         AND c.COLUMN_NAME = g.COLUMN_NAME
+        WHERE g.TABLE_SCHEMA = DATABASE()
+          AND g.TABLE_NAME = #{klass.lease_connection.quote(table_name)}
+          AND c.COLUMN_COMMENT #{geographic ? 'LIKE' : 'NOT LIKE'} '%mysql2rgeo:geographic%'
+      SQL
     end
   end
 end

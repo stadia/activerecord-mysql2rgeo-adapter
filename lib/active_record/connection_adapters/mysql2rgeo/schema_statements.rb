@@ -69,11 +69,13 @@ module ActiveRecord
 
         # override
         def new_column_from_field(table_name, field, _definitions)
-          type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-          default = field[:Default]
+          field_name = field_value(field, "Field")
+          type_metadata = fetch_type_metadata(field_value(field, "Type"), field_value(field, "Extra"))
+          default = field_value(field, "Default")
           default_function = nil
-          metadata = Mysql2Rgeo::ColumnDefinitionUtils.extract_metadata(field[:Comment])
-          comment = Mysql2Rgeo::ColumnDefinitionUtils.strip_metadata_comment(field[:Comment])
+          metadata_comment = field_value(field, "Comment")
+          metadata = Mysql2Rgeo::ColumnDefinitionUtils.extract_metadata(metadata_comment)
+          comment = Mysql2Rgeo::ColumnDefinitionUtils.strip_metadata_comment(metadata_comment)
           default = metadata[:default_hex] if default.nil? && metadata[:default_hex].present?
 
           if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
@@ -83,7 +85,7 @@ module ActiveRecord
             if default == "NULL" && metadata[:default_hex].present?
               default = metadata[:default_hex]
             elsif default == "NULL"
-              default = generated_default_for(table_name, field[:Field])
+              default = generated_default_for(table_name, field_name)
             end
 
             if default&.match?(/\Ast_geomfromtext\(/i)
@@ -94,11 +96,11 @@ module ActiveRecord
           end
 
           if type_metadata.extra.to_s.match?(/(?:VIRTUAL|STORED|PERSISTENT)\s+GENERATED/i)
-            default_function = generation_expression_for(table_name, field[:Field])
+            default_function = generation_expression_for(table_name, field_name)
           end
 
           # {:dimension=>2, :has_m=>false, :has_z=>false, :name=>"latlon", :srid=>0, :type=>"GEOMETRY"}
-          spatial = spatial_column_info(table_name).get(field[:Field], type_metadata.sql_type)
+          spatial = spatial_column_info(table_name).get(field_name, type_metadata.sql_type)
           if spatial
             spatial[:has_z] ||= metadata[:has_z]
             spatial[:has_m] ||= metadata[:has_m]
@@ -129,12 +131,13 @@ module ActiveRecord
           end
 
           SpatialColumn.new(
-            field[:Field],
+            field_name,
+            lookup_cast_type(type_metadata.sql_type),
             default,
             type_metadata,
-            field[:Null] == "YES",
+            field_value(field, "Null") == "YES",
             default_function,
-            collation: field[:Collation],
+            collation: field_value(field, "Collation"),
             comment: comment,
             spatial: spatial,
             array: metadata[:array]
@@ -145,6 +148,10 @@ module ActiveRecord
         def spatial_column_info(table_name)
           @spatial_column_info ||= {}
           @spatial_column_info[table_name.to_sym] = SpatialColumnInfo.new(self, table_name.to_s)
+        end
+
+        def field_value(field, key)
+          field[key] || field[key.to_sym]
         end
 
         def extract_spatial_default_hex(default_function, spatial)

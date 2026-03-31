@@ -7,6 +7,7 @@ require "minitest/pride"
 require "minitest/excludes"
 
 require "erb"
+require "yaml"
 require "byebug" if ENV["BYEBUG"]
 require "activerecord-mysql2rgeo-adapter"
 require "timeout"
@@ -58,6 +59,26 @@ end
 
 ENV["ARCONN"] ||= "mysql2rgeo"
 
+def ensure_mysql_test_databases!
+  raw_config = YAML.safe_load(
+    ERB.new(File.read(File.expand_path("database.yml", __dir__))).result,
+    aliases: true
+  )
+  configs = raw_config.fetch("connections").fetch("mysql2rgeo")
+
+  %w[arunit arunit2].each do |name|
+    config = configs.fetch(name)
+    Mysql2::Client.new(
+      host: config["host"],
+      port: config["port"].to_i,
+      username: config["username"],
+      password: config["password"]
+    ).query("CREATE DATABASE IF NOT EXISTS `#{config['database']}`")
+  end
+end
+
+ensure_mysql_test_databases!
+
 # We need to require this before the original `cases/helper`
 # to make sure we patch load schema before it runs.
 require "support/load_schema_helper"
@@ -103,13 +124,11 @@ class SpatialModel < ActiveRecord::Base
 end
 
 module TestTimeoutHelper
-  def time_it
+  def time_it(&block)
     t0 = Minitest.clock_time
 
     timeout = ENV.fetch("TEST_TIMEOUT", 10).to_i
-    Timeout.timeout(timeout, Timeout::Error, "Test took over #{timeout} seconds to finish") do
-      yield
-    end
+    Timeout.timeout(timeout, Timeout::Error, "Test took over #{timeout} seconds to finish", &block)
   ensure
     self.time = Minitest.clock_time - t0
   end
@@ -145,7 +164,7 @@ module ActiveSupport
 end
 
 if ENV["JSON_REPORTER"]
-  puts "Generating JSON report: #{ENV["JSON_REPORTER"]}"
+  puts "Generating JSON report: #{ENV['JSON_REPORTER']}"
   module Minitest
     class JSONReporter < StatisticsReporter
       def report
@@ -170,8 +189,8 @@ if ENV["JSON_REPORTER"]
       reporter << JSONReporter.new(File.open(ENV["JSON_REPORTER"], "w"))
     end
 
-    self.load_plugins
-    self.extensions << "json_reporter"
+    load_plugins
+    extensions << "json_reporter"
   end
 end
 

@@ -10,13 +10,14 @@ module ActiveRecord
       #   "geometry NOT NULL"
       #   "geometry"
       def initialize(sql_type = "geometry", geo_type: nil, srid: nil, geographic: false, has_z: false, has_m: false, **_options)
-        @sql_type = geographic ? "geography" : sql_type
+        @sql_type = -(geographic ? "geography" : sql_type.to_s)
         parsed_geo_type, parsed_srid, parsed_has_z, parsed_has_m, parsed_geographic = self.class.parse_sql_type(@sql_type)
-        @geo_type = self.class.normalize_geo_type(geo_type || parsed_geo_type)
+        @geo_type = -self.class.normalize_geo_type(geo_type || parsed_geo_type).to_s
         @srid = srid || parsed_srid
         @has_z = has_z || parsed_has_z
         @has_m = has_m || parsed_has_m
         @geographic = geographic || parsed_geographic
+        freeze
       end
 
       # sql_type: geometry, geometry(Point), geometry(Point,4326), ...
@@ -70,17 +71,17 @@ module ActiveRecord
         end
       end
 
-      def spatial_factory
-        @spatial_factories ||= {}
-
-        @spatial_factories[@srid] ||=
-          RGeo::ActiveRecord::SpatialFactoryStore.instance.factory(
-            geo_type: @geo_type,
-            has_m: @has_m,
-            has_z: @has_z,
-            sql_type: @geographic ? "geography" : "geometry",
-            srid: @srid
-          )
+      def spatial_factory(srid = @srid)
+        # Don't use instance variable caching since Type objects are frozen in Rails 8.1+
+        # The SpatialFactoryStore already caches factories internally
+        # Use provided srid or fall back to instance srid
+        RGeo::ActiveRecord::SpatialFactoryStore.instance.factory(
+          geo_type: @geo_type,
+          has_m: @has_m,
+          has_z: @has_z,
+          sql_type: @geographic ? "geography" : "geometry",
+          srid: srid
+        )
       end
 
       def klass
@@ -123,33 +124,41 @@ module ActiveRecord
       def parse_wkt(string)
         marker = string[4, 1]
         if ["\x00", "\x01"].include?(marker)
-          @srid = string[0, 4].unpack1(marker == "\x01" ? "V" : "N")
-          RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: @srid).parse(string[4..])
+          srid = string[0, 4].unpack1(marker == "\x01" ? "V" : "N")
+          RGeo::WKRep::WKBParser.new(spatial_factory(srid), support_ewkb: true, default_srid: srid).parse(string[4..])
         elsif string.match?(/\A[0-9a-fA-F]+\z/)
-          original_srid = @srid
           parser = RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: @srid)
 
           begin
             return parser.parse([string].pack("H*"))
           rescue RGeo::Error::ParseError, RGeo::Error::InvalidGeometry
-            @srid = original_srid
           end
 
           if string[0, 10] =~ /[0-9a-fA-F]{8}0[01]/
-            @srid = string[0, 8].to_i(16)
-            @srid = [@srid].pack("V").unpack1("N") if string[9, 1] == "1"
-            parser = RGeo::WKRep::WKBParser.new(spatial_factory, support_ewkb: true, default_srid: @srid)
+            srid = string[0, 8].to_i(16)
+            srid = [srid].pack("V").unpack1("N") if string[9, 1] == "1"
+            parser = RGeo::WKRep::WKBParser.new(spatial_factory(srid), support_ewkb: true, default_srid: srid)
             return parser.parse([string[8..]].pack("H*"))
           end
 
           parser.parse([string].pack("H*"))
         else
           string, srid = Arel::Visitors::Mysql2Rgeo.parse_node(string)
-          @srid = srid.zero? ? @srid : srid
-          RGeo::WKRep::WKTParser.new(spatial_factory, support_ewkt: true, default_srid: @srid).parse(string)
+          srid = @srid if srid.zero?
+          RGeo::WKRep::WKTParser.new(spatial_factory(srid), support_ewkt: true, default_srid: srid).parse(string)
         end
       rescue RGeo::Error::ParseError, RGeo::Error::InvalidGeometry
         nil
+      end
+    end
+  end
+end
+
+module ActiveRecord
+  module ConnectionAdapters
+    module Mysql2Rgeo
+      module OID
+        Spatial = ActiveRecord::Type::Spatial
       end
     end
   end

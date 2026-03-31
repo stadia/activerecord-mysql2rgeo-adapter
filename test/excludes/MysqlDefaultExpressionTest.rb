@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 exclude "test_schema_dump_datetime_includes_default_expression", TRIAGE_MSG
 exclude "test_schema_dump_datetime_includes_precise_default_expression", TRIAGE_MSG
 exclude "test_schema_dump_datetime_includes_precise_default_expression_with_on_update", TRIAGE_MSG

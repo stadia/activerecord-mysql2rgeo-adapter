@@ -4,7 +4,8 @@ module ActiveRecord # :nodoc:
   module ConnectionAdapters # :nodoc:
     module Mysql2Rgeo # :nodoc:
       class SpatialColumn < ConnectionAdapters::MySQL::Column # :nodoc:
-        def initialize(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, spatial: nil, array: false, **)
+        def initialize(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil,
+spatial: nil, array: false, **)
           @sql_type_metadata = sql_type_metadata
           @array = array
           @geographic = !!(sql_type_metadata&.sql_type =~ /geography\(/i)
@@ -27,14 +28,13 @@ module ActiveRecord # :nodoc:
             build_from_sql_type(sql_type_metadata.sql_type)
           end
           super(name, default, sql_type_metadata, null, default_function, collation: collation, comment: comment)
-          if spatial?
-            if @srid
-              @limit = { type: limit_type_name, srid: @srid }
-              @limit[:geographic] = true if geographic?
-              @limit[:has_z] = true if has_z?
-              @limit[:has_m] = true if has_m?
-            end
-          end
+          return unless spatial?
+          return unless @srid
+
+          @limit = { type: limit_type_name, srid: @srid }
+          @limit[:geographic] = true if geographic?
+          @limit[:has_z] = true if has_z?
+          @limit[:has_m] = true if has_m?
         end
 
         attr_reader :geometric_type, :srid

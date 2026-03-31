@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 exclude "test_preload_with_grouping_sets_inverse_association", TRIAGE_MSG
 exclude "test_preload_wont_set_the_wrong_target", TRIAGE_MSG
 exclude "test_preload_with_available_records_queries_when_incomplete", TRIAGE_MSG

@@ -29,11 +29,11 @@ module ActiveRecord # :nodoc:
             has_z = type.sub!(/z$/i, "").present?
             has_m = type.sub!(/m$/i, "").present?
             result[name] = {
-              name:      name,
-              srid:      row[1].to_i,
-              type:      type,
-              has_z:     has_z,
-              has_m:     has_m,
+              name: name,
+              srid: row[1].to_i,
+              type: type,
+              has_z: has_z,
+              has_m: has_m,
               geographic: column_comment.include?("mysql2rgeo:geographic"),
             }
           end

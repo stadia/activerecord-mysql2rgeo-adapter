@@ -13,16 +13,16 @@ module Mysql2Rgeo
     end
 
     def test_spatial_column_options
-      [
-        :geography,
-        :geometry,
-        :geometry_collection,
-        :line_string,
-        :multi_line_string,
-        :multi_point,
-        :multi_polygon,
-        :st_point,
-        :st_polygon,
+      %i[
+        geography
+        geometry
+        geometry_collection
+        line_string
+        multi_line_string
+        multi_point
+        multi_polygon
+        st_point
+        st_polygon
       ].each do |type|
         assert ActiveRecord::ConnectionAdapters::Mysql2RgeoAdapter.spatial_column_options(type), type
       end
@@ -319,7 +319,9 @@ module Mysql2Rgeo
 
     # Ensure virtual column default function works like the Postgres adapter.
     def test_virtual_column_default_function
-      skip "Virtual columns are not supported by this MySQL version" unless SpatialModel.lease_connection.supports_virtual_columns?
+      unless SpatialModel.lease_connection.supports_virtual_columns?
+        skip "Virtual columns are not supported by this MySQL version"
+      end
       klass.lease_connection.create_table(:spatial_models, force: true) do |t|
         t.integer :column1
         t.virtual :column2, type: :integer, as: "(column1 + 1)", stored: true
@@ -381,7 +383,9 @@ module Mysql2Rgeo
     end
 
     def test_generated_geometry_column
-      skip "Virtual columns are not supported by this MySQL version" unless SpatialModel.lease_connection.supports_virtual_columns?
+      unless SpatialModel.lease_connection.supports_virtual_columns?
+        skip "Virtual columns are not supported by this MySQL version"
+      end
       klass.lease_connection.create_table(:spatial_models, force: true) do |t|
         t.st_point :coordinates, limit: { srid: 4326 }
         t.virtual :generated_buffer, type: :st_polygon, limit: { srid: 4326 }, as: "ST_Buffer(coordinates, 10)", stored: true

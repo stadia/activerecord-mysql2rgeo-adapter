@@ -69,6 +69,6 @@ ActiveRecord::Schema.define do
     t.date :logdate, null: false
     t.integer :peaktemp
     t.integer :unitsales
-    t.index [:logdate, :city_id], unique: true
+    t.index %i[logdate city_id], unique: true
   end
 end

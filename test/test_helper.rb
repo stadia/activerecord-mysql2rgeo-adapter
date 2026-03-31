@@ -5,8 +5,7 @@ Bundler.require :development
 require "minitest/autorun"
 require "minitest/pride"
 require "minitest/excludes"
-MiniTest = Minitest unless defined?(MiniTest)
-require "mocha/minitest"
+
 require "erb"
 require "byebug" if ENV["BYEBUG"]
 require "activerecord-mysql2rgeo-adapter"
@@ -35,7 +34,7 @@ module ActiveRecord
         "multipoint" => "multi_point",
         "multipolygon" => "multi_polygon",
         "point" => "st_point",
-        "polygon" => "st_polygon"
+        "polygon" => "st_polygon",
       }.freeze
 
       def keys
@@ -51,52 +50,6 @@ module ActiveRecord
         keys.concat(@mapping.keys.map(&:to_s))
         keys.map! { |key| TYPE_KEY_ALIASES.fetch(key, key) }
         keys.uniq
-      end
-    end
-  end
-end
-
-module ActiveRecord
-  module ConnectionAdapters
-    module Mysql2Rgeo
-      VERSION = ActiveRecord::ConnectionAdapters::Mysql2Rgeo::VERSION unless const_defined?(:VERSION)
-    end
-  end
-end
-
-module ActiveRecord
-  class PredicateBuilder
-    class BasicObjectHandler
-      unless method_defined?(:mysql2rgeo_call_without_spatial)
-        alias_method :mysql2rgeo_call_without_spatial, :call
-
-        def call(attribute, value)
-          if spatial_attribute?(attribute) && spatial_query_value?(value)
-            attribute.st_equals(Arel.spatial(value))
-          else
-            mysql2rgeo_call_without_spatial(attribute, value)
-          end
-        end
-
-        private
-
-        def spatial_attribute?(attribute)
-          relation = attribute.respond_to?(:relation) ? attribute.relation : nil
-          relation.respond_to?(:engine) &&
-            relation.engine.type_for_attribute(attribute.name.to_s).respond_to?(:spatial?) &&
-            relation.engine.type_for_attribute(attribute.name.to_s).spatial?
-        rescue StandardError
-          false
-        end
-
-        def spatial_query_value?(value)
-          RGeo::Feature::Instance === value || spatial_wkt?(value)
-        end
-
-        def spatial_wkt?(value)
-          value.is_a?(String) &&
-            value.match?(/\A(?:SRID=\d+;)?\s*(?:point|linestring|polygon|multipoint|multilinestring|multipolygon|geometrycollection)\b/i)
-        end
       end
     end
   end
@@ -121,10 +74,10 @@ if ENV["ARCONN"]
 else
   module ActiveRecord
     class Base
-      DATABASE_CONFIG_PATH = File.dirname(__FILE__) << "/database.yml"
+      DATABASE_CONFIG_PATH = "#{__dir__}/database.yml".freeze
 
       def self.test_connection_hash
-        conns = YAML.load(ERB.new(File.read(DATABASE_CONFIG_PATH)).result)
+        conns = YAML.safe_load(ERB.new(File.read(DATABASE_CONFIG_PATH)).result)
         conn_hash = conns["connections"]["mysql2rgeo"]["arunit"]
         conn_hash.merge(adapter: "mysql2rgeo", prepared_statements: false)
       end
@@ -138,9 +91,6 @@ else
   ActiveRecord::Base.establish_test_connection
 
   conn = ActiveRecord::Base.connection
-  %w[geometry_columns geography_columns].each do |view_name|
-    conn.execute("DROP VIEW IF EXISTS #{conn.quote_table_name(view_name)}")
-  end
   conn.execute <<~SQL
     CREATE SPATIAL REFERENCE SYSTEM IF NOT EXISTS 3785
     NAME 'WGS 84 / Popular Visualisation Sphere'
@@ -148,7 +98,6 @@ else
     DEFINITION 'PROJCS["WGS 84 / Popular Visualisation Sphere",GEOGCS["WGS 84",DATUM["World Geodetic System 1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.017453292519943278,AUTHORITY["EPSG","9122"]],AXIS["Lat",NORTH],AXIS["Lon",EAST],AUTHORITY["EPSG","4326"]],PROJECTION["Popular Visualisation Pseudo Mercator",AUTHORITY["EPSG","1024"]],PARAMETER["Latitude of natural origin",0,AUTHORITY["EPSG","8801"]],PARAMETER["Longitude of natural origin",0,AUTHORITY["EPSG","8802"]],PARAMETER["False easting",0,AUTHORITY["EPSG","8806"]],PARAMETER["False northing",0,AUTHORITY["EPSG","8807"]],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["X",EAST],AXIS["Y",NORTH],AUTHORITY["EPSG","3785"]]'
     DESCRIPTION 'Added for upstream compatibility'
   SQL
-
 end
 
 ActiveRecord::SchemaDumper.ignore_tables = %w[
@@ -165,13 +114,11 @@ end
 require "timeout"
 
 module TestTimeoutHelper
-  def time_it
+  def time_it(&block)
     t0 = Minitest.clock_time
 
     timeout = ENV.fetch("TEST_TIMEOUT", 10).to_i
-    Timeout.timeout(timeout, Timeout::Error, "Test took over #{timeout} seconds to finish") do
-      yield
-    end
+    Timeout.timeout(timeout, Timeout::Error, "Test took over #{timeout} seconds to finish", &block)
   ensure
     self.time = Minitest.clock_time - t0
   end
@@ -180,6 +127,7 @@ end
 module ActiveSupport
   class TestCase
     include TestTimeoutHelper
+
     self.test_order = :sorted
 
     def database_version

@@ -226,7 +226,7 @@ module ActiveRecord
       private
 
       def type_map
-        if key = extended_type_map_key
+        if (key = extended_type_map_key)
           self.class::EXTENDED_TYPE_MAPS.compute_if_absent(key) do
             self.class.extended_type_map(**key)
           end

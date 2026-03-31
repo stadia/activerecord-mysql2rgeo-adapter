@@ -101,7 +101,9 @@ module LoadSchemaHelperExt
     load_postgis_specific_schema
   end
 
-  private def shh
+  private
+
+  def shh
     original_stdout = $stdout
     $stdout = StringIO.new
     yield
@@ -125,11 +127,11 @@ class SpatialModel < ActiveRecord::Base
 end
 
 module TestTimeoutHelper
-  def time_it(&block)
+  def time_it(&)
     t0 = Minitest.clock_time
 
     timeout = ENV.fetch("TEST_TIMEOUT", 10).to_i
-    Timeout.timeout(timeout, Timeout::Error, "Test took over #{timeout} seconds to finish", &block)
+    Timeout.timeout(timeout, Timeout::Error, "Test took over #{timeout} seconds to finish", &)
   ensure
     self.time = Minitest.clock_time - t0
   end

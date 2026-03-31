@@ -1,1 +1,3 @@
+# frozen_string_literal: true
+
 exclude "test_formatting_datetime_according_to_precision_when_time_zone_aware_using_timestamptz", TRIAGE_MSG

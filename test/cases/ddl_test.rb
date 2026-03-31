@@ -5,16 +5,16 @@ require_relative "../test_helper"
 module Mysql2Rgeo
   class DDLTest < ActiveSupport::TestCase
     def test_spatial_column_options
-      [
-        :geography,
-        :geometry,
-        :geometry_collection,
-        :line_string,
-        :multi_line_string,
-        :multi_point,
-        :multi_polygon,
-        :st_point,
-        :st_polygon,
+      %i[
+        geography
+        geometry
+        geometry_collection
+        line_string
+        multi_line_string
+        multi_point
+        multi_polygon
+        st_point
+        st_polygon
       ].each do |type|
         assert ActiveRecord::ConnectionAdapters::Mysql2RgeoAdapter.spatial_column_options(type), type
       end

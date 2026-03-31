@@ -29,7 +29,7 @@ module ActiveRecord
       config = config.symbolize_keys
       config[:flags] ||= 0
 
-      if config[:flags].kind_of? Array
+      if config[:flags].is_a? Array
         config[:flags].push "FOUND_ROWS"
       else
         config[:flags] |= Mysql2::Client::FOUND_ROWS
@@ -39,7 +39,7 @@ module ActiveRecord
         ConnectionAdapters::Mysql2RgeoAdapter.new_client(config),
         logger,
         nil,
-        config,
+        config
       )
     end
   end
@@ -110,61 +110,61 @@ module ActiveRecord
       end
 
       class << self
-
         private
-          def initialize_type_map(m)
-            super
 
-            {
-              "geography" => "geometry",
-              "geometry" => "geometry",
-              "geometry_collection" => "geometrycollection",
-              "line_string" => "linestring",
-              "multi_line_string" => "multilinestring",
-              "multi_point" => "multipoint",
-              "multi_polygon" => "multipolygon",
-              "st_point" => "point",
-              "st_polygon" => "polygon",
-            }.each do |registered_type, geo_type|
-              m.register_type(registered_type) do |sql_type|
-                Type::Spatial.new(sql_type.to_s, geo_type: geo_type)
-              end
-            end
+        def initialize_type_map(m)
+          super
 
-            [
-              /\Ageometry(?:\(.*\))?\z/i,
-              /\Ageography(?:\(.*\))?\z/i,
-              /\Apoint(?:\s.*)?\z/i,
-              /\Alinestring(?:\s.*)?\z/i,
-              /\Apolygon(?:\s.*)?\z/i,
-              /\Amultipoint(?:\s.*)?\z/i,
-              /\Amultilinestring(?:\s.*)?\z/i,
-              /\Amultipolygon(?:\s.*)?\z/i,
-              /\Ageometrycollection(?:\s.*)?\z/i,
-            ].each do |pattern|
-              m.register_type(pattern) do |sql_type|
-                Type::Spatial.new(sql_type.to_s)
-              end
-            end
-
-            {
-              st_point: "point",
-              st_polygon: "polygon",
-              line_string: "linestring",
-              multi_line_string: "multilinestring",
-              multi_point: "multipoint",
-              multi_polygon: "multipolygon",
-            }.each do |alias_type, geo_type|
-              ActiveRecord::Type.register(alias_type) do |_, **kwargs|
-                Type::Spatial.new(geo_type, geo_type: geo_type, **kwargs)
-              end
+          {
+            "geography" => "geometry",
+            "geometry" => "geometry",
+            "geometry_collection" => "geometrycollection",
+            "line_string" => "linestring",
+            "multi_line_string" => "multilinestring",
+            "multi_point" => "multipoint",
+            "multi_polygon" => "multipolygon",
+            "st_point" => "point",
+            "st_polygon" => "polygon",
+          }.each do |registered_type, geo_type|
+            m.register_type(registered_type) do |sql_type|
+              Type::Spatial.new(sql_type.to_s, geo_type: geo_type)
             end
           end
+
+          [
+            /\Ageometry(?:\(.*\))?\z/i,
+            /\Ageography(?:\(.*\))?\z/i,
+            /\Apoint(?:\s.*)?\z/i,
+            /\Alinestring(?:\s.*)?\z/i,
+            /\Apolygon(?:\s.*)?\z/i,
+            /\Amultipoint(?:\s.*)?\z/i,
+            /\Amultilinestring(?:\s.*)?\z/i,
+            /\Amultipolygon(?:\s.*)?\z/i,
+            /\Ageometrycollection(?:\s.*)?\z/i,
+          ].each do |pattern|
+            m.register_type(pattern) do |sql_type|
+              Type::Spatial.new(sql_type.to_s)
+            end
+          end
+
+          {
+            st_point: "point",
+            st_polygon: "polygon",
+            line_string: "linestring",
+            multi_line_string: "multilinestring",
+            multi_point: "multipoint",
+            multi_polygon: "multipolygon",
+          }.each do |alias_type, geo_type|
+            ActiveRecord::Type.register(alias_type) do |_, **kwargs|
+              Type::Spatial.new(geo_type, geo_type: geo_type, **kwargs)
+            end
+          end
+        end
       end
 
       TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
       TYPE_MAP_WITH_BOOLEAN = Type::TypeMap.new(TYPE_MAP).tap do |m|
-        m.register_type %r(^tinyint\(1\))i, Type::Boolean.new
+        m.register_type(/^tinyint\(1\)/i, Type::Boolean.new)
       end
 
       def supports_spatial?
@@ -203,16 +203,17 @@ module ActiveRecord
       end
 
       private
-        def verify_supported_database_version!
-          return if database_version >= MINIMUM_SUPPORTED_VERSION
 
-          raise ActiveRecord::ConnectionNotEstablished,
-                "#{ADAPTER_NAME} supports MySQL #{MINIMUM_SUPPORTED_VERSION}+ only (detected #{database_version})"
-        end
+      def verify_supported_database_version!
+        return if database_version >= MINIMUM_SUPPORTED_VERSION
 
-        def type_map
-          emulate_booleans ? TYPE_MAP_WITH_BOOLEAN : TYPE_MAP
-        end
+        raise ActiveRecord::ConnectionNotEstablished,
+              "#{ADAPTER_NAME} supports MySQL #{MINIMUM_SUPPORTED_VERSION}+ only (detected #{database_version})"
+      end
+
+      def type_map
+        emulate_booleans ? TYPE_MAP_WITH_BOOLEAN : TYPE_MAP
+      end
     end
   end
 end

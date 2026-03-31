@@ -5,6 +5,7 @@ module ActiveRecord # :nodoc:
     module Mysql2Rgeo # :nodoc:
       class TableDefinition < MySQL::TableDefinition # :nodoc:
         include ColumnMethods
+
         # super: https://github.com/rails/rails/blob/master/activerecord/lib/active_record/connection_adapters/abstract/schema_definitions.rb
         def new_column_definition(name, type, **options)
           spatial_type = type.to_sym == :virtual ? options[:type]&.to_sym : type.to_sym
@@ -20,7 +21,9 @@ module ActiveRecord # :nodoc:
                          ColumnDefinitionUtils.geo_type(options[:type] || spatial_type || info[:type])
                        end
 
-            unless type.to_sym == :virtual
+            if type.to_sym == :virtual
+              options.delete(:srid)
+            else
               options[:srid] ||= ColumnDefinitionUtils.default_srid(options)
               options[:comment] = ColumnDefinitionUtils.add_metadata_comment(
                 options[:comment],
@@ -32,19 +35,20 @@ module ActiveRecord # :nodoc:
                 srid: options[:srid],
                 geo_type: geo_type
               )
-            else
-              options.delete(:srid)
             end
 
             options[:spatial_type] = geo_type
-            if type.to_sym == :virtual
-              column = super(name, type, **options.merge(type: geo_type.downcase.to_sym))
-            else
-              column = super(name, geo_type.downcase.to_sym, **options)
-            end
+            column = if type.to_sym == :virtual
+                       super(name, type, **options.merge(type: geo_type.downcase.to_sym))
+                     else
+                       super(name, geo_type.downcase.to_sym, **options)
+                     end
           else
-            options[:comment] = ColumnDefinitionUtils.add_metadata_comment(options[:comment], array: options[:array]) if options[:array]
-            column = super(name, type, **options)
+            if options[:array]
+              options[:comment] =
+                ColumnDefinitionUtils.add_metadata_comment(options[:comment], array: options[:array])
+            end
+            column = super
           end
 
           column
@@ -77,14 +81,16 @@ module ActiveRecord # :nodoc:
             options[:geographic] ? 4326 : Mysql2RgeoAdapter::DEFAULT_SRID
           end
 
-          def add_metadata_comment(comment, geographic: false, has_m: false, has_z: false, array: false, default: nil, srid: nil, geo_type: nil)
+          def add_metadata_comment(comment, geographic: false, has_m: false, has_z: false, array: false, default: nil, srid: nil,
+geo_type: nil)
             values = [comment]
             values << METADATA_TOKENS[:geographic] if geographic
             values << METADATA_TOKENS[:has_m] if has_m
             values << METADATA_TOKENS[:has_z] if has_z
             values << METADATA_TOKENS[:array] if array
             if default
-              values << "#{METADATA_TOKENS[:default_prefix]}#{encode_default(default, geographic: geographic, srid: srid, geo_type: geo_type, has_m: has_m, has_z: has_z)}"
+              values << "#{METADATA_TOKENS[:default_prefix]}#{encode_default(default, geographic: geographic, srid: srid,
+                                                                                      geo_type: geo_type, has_m: has_m, has_z: has_z)}"
             end
             values.compact_blank.join(" ")
           end

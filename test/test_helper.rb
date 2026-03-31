@@ -62,7 +62,9 @@ module ActiveRecord
         Spatial = ActiveRecord::Type::Spatial unless const_defined?(:Spatial)
       end
 
-      SpatialColumnInfo = ::ActiveRecord::ConnectionAdapters::Mysql2Rgeo::SpatialColumnInfo unless const_defined?(:SpatialColumnInfo)
+      unless const_defined?(:SpatialColumnInfo)
+        SpatialColumnInfo = ::ActiveRecord::ConnectionAdapters::Mysql2Rgeo::SpatialColumnInfo
+      end
     end
   end
 end
@@ -71,7 +73,7 @@ module ActiveRecord
   class PredicateBuilder
     class BasicObjectHandler
       unless method_defined?(:mysql2rgeo_call_without_spatial)
-        alias_method :mysql2rgeo_call_without_spatial, :call
+        alias mysql2rgeo_call_without_spatial call
 
         def call(attribute, value)
           if spatial_attribute?(attribute) && spatial_query_value?(value)
@@ -93,7 +95,7 @@ module ActiveRecord
         end
 
         def spatial_query_value?(value)
-          RGeo::Feature::Instance === value || spatial_wkt?(value)
+          value.is_a?(RGeo::Feature::Instance) || spatial_wkt?(value)
         end
 
         def spatial_wkt?(value)
@@ -143,7 +145,7 @@ else
       DATABASE_CONFIG_PATH = File.dirname(__FILE__) << "/database.yml"
 
       def self.test_connection_hash
-        conns = YAML.load(ERB.new(File.read(DATABASE_CONFIG_PATH)).result)
+        conns = YAML.safe_load(ERB.new(File.read(DATABASE_CONFIG_PATH)).result)
         conn_hash = conns["connections"]["mysql2rgeo"]["arunit"]
         conn_hash.merge(adapter: "mysql2rgeo", prepared_statements: false)
       end

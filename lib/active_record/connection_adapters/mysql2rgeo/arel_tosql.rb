@@ -9,12 +9,10 @@ module Arel # :nodoc:
                         MySQL
                       end
 
-    class Mysql2Rgeo < MySQLSuperclass  # :nodoc:
+    class Mysql2Rgeo < MySQLSuperclass # :nodoc:
       include RGeo::ActiveRecord::SpatialToSql
 
-      if ::Arel::Visitors.const_defined?(:BindVisitor)
-        include ::Arel::Visitors::BindVisitor
-      end
+      include ::Arel::Visitors::BindVisitor if ::Arel::Visitors.const_defined?(:BindVisitor)
 
       FUNC_MAP = {
         "st_wkttosql" => "ST_GeomFromText",
@@ -52,12 +50,12 @@ module Arel # :nodoc:
       end
 
       def self.parse_node(node)
-        if RGeo::Feature::Instance === node
+        if node.is_a?(RGeo::Feature::Instance)
           wkt = RGeo::WKRep::WKTGenerator.new(tag_format: :wkt11, emit_ewkt_srid: false).generate(node)
           return [wkt, node.srid]
         end
 
-        if RGeo::Cartesian::BoundingBox === node
+        if node.is_a?(RGeo::Cartesian::BoundingBox)
           geometry = node.to_geometry
           wkt = RGeo::WKRep::WKTGenerator.new(tag_format: :wkt11, emit_ewkt_srid: false).generate(geometry)
           return [wkt, geometry.srid]

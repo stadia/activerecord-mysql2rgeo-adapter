@@ -5,7 +5,9 @@
 
 ActiveRecord::Schema.define do
   ActiveRecord::TestCase.enable_extension!("uuid-ossp", ActiveRecord::Base.connection)
-  ActiveRecord::TestCase.enable_extension!("pgcrypto",  ActiveRecord::Base.connection) if ActiveRecord::Base.connection.supports_pgcrypto_uuid?
+  if ActiveRecord::Base.connection.supports_pgcrypto_uuid?
+    ActiveRecord::TestCase.enable_extension!("pgcrypto", ActiveRecord::Base.connection)
+  end
 
   uuid_default = connection.supports_pgcrypto_uuid? ? {} : { default: "uuid_generate_v4()" }
 
@@ -57,7 +59,7 @@ ActiveRecord::Schema.define do
 
   execute "DROP FUNCTION IF EXISTS partitioned_insert_trigger()"
 
-  %w(accounts_id_seq developers_id_seq projects_id_seq topics_id_seq customers_id_seq orders_id_seq).each do |seq_name|
+  %w[accounts_id_seq developers_id_seq projects_id_seq topics_id_seq customers_id_seq orders_id_seq].each do |seq_name|
     execute "SELECT setval('#{seq_name}', 100)"
   end
 
@@ -91,12 +93,10 @@ _SQL
       FOR EACH ROW EXECUTE PROCEDURE partitioned_insert_trigger();
 _SQL
   rescue ActiveRecord::StatementInvalid => e
-    if e.message.include?('language "plpgsql" does not exist')
-      execute "CREATE LANGUAGE 'plpgsql';"
-      retry
-    else
-      raise e
-    end
+    raise e unless e.message.include?('language "plpgsql" does not exist')
+
+    execute "CREATE LANGUAGE 'plpgsql';"
+    retry
   end
 
   # This table is to verify if the :limit option is being ignored for text and binary columns
@@ -137,7 +137,7 @@ _SQL
       t.date :logdate, null: false
       t.integer :peaktemp
       t.integer :unitsales
-      t.index [:logdate, :city_id], unique: true
+      t.index %i[logdate city_id], unique: true
     end
     create_table(:measurements_toronto, id: false, force: true,
                                         options: "PARTITION OF measurements FOR VALUES IN (1)")

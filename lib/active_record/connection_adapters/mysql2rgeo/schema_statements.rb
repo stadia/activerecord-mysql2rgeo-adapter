@@ -7,7 +7,7 @@ module ActiveRecord
         # super: https://github.com/rails/rails/blob/master/activerecord/lib/active_record/connection_adapters/mysql/schema_statements.rb
 
         # override
-        def indexes(table_name) #:nodoc:
+        def indexes(table_name) # :nodoc:
           indexes = super
           # HACK(aleks, 06/15/18): MySQL 5 does not support prefix lengths for spatial indexes
           # https://dev.mysql.com/doc/refman/5.6/en/create-index.html
@@ -33,7 +33,7 @@ module ActiveRecord
 
               column_options = column.limit.is_a?(Hash) ? column.limit.symbolize_keys.except(:type) : {}
               column_options[:comment] = column.comment if column.comment.present?
-              change_column(table_name, name, column.limit[:type].to_sym, **column_options.merge(null: false))
+              change_column(table_name, name, column.limit[:type].to_sym, **column_options, null: false)
             end
           end
 
@@ -42,11 +42,9 @@ module ActiveRecord
 
         # override
         def type_to_sql(type, limit: nil, precision: nil, scale: nil, unsigned: nil, **) # :nodoc:
-          if type.to_sym == :geometry && limit.is_a?(String)
-            return "geometry(#{limit})"
-          end
+          return "geometry(#{limit})" if type.to_sym == :geometry && limit.is_a?(String)
 
-          if (info = RGeo::ActiveRecord.geometric_type_from_name(type.to_s.delete("_")))
+          if RGeo::ActiveRecord.geometric_type_from_name(type.to_s.delete("_"))
             type = limit[:type] || type if limit.is_a?(::Hash)
             type = type.to_s.delete("_").upcase
           end
@@ -87,7 +85,7 @@ module ActiveRecord
             end
 
             if default&.match?(/\Ast_geomfromtext\(/i)
-              default = +"(#{default})" unless default.start_with?("(")
+              default = "(#{default})" unless default.start_with?("(")
               default, default_function = nil, default
             end
           end
@@ -116,9 +114,9 @@ module ActiveRecord
                 type: :geometry,
                 limit: nil,
                 precision: type_metadata.precision,
-                scale: type_metadata.scale,
+                scale: type_metadata.scale
               ),
-              extra: type_metadata.extra,
+              extra: type_metadata.extra
             )
 
             if default_function&.match?(/\A\(?st_geomfromtext\(/i)
@@ -159,10 +157,11 @@ module ActiveRecord
             srid: srid,
             geographic: spatial[:geographic],
             has_z: spatial[:has_z],
-            has_m: spatial[:has_m],
+            has_m: spatial[:has_m]
           )
           geometry = type.serialize(wkt)
           return unless geometry
+
           geometry = RGeo::Feature.cast(geometry, factory: type.send(:spatial_factory), project: true) if spatial[:geographic]
 
           wkb = RGeo::WKRep::WKBGenerator.new(
@@ -185,7 +184,7 @@ module ActiveRecord
               AND table_name = #{quote(table_name)}
               AND column_name = #{quote(column_name)}
           SQL
-            &.gsub(/st_buffer\(([^,]+),\s*(\d+)\)/i, 'st_buffer(\1, (\2)::double precision)')
+                             &.gsub(/st_buffer\(([^,]+),\s*(\d+)\)/i, 'st_buffer(\1, (\2)::double precision)')
         end
 
         def generated_default_for(table_name, column_name)

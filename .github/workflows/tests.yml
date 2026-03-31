@@ -30,7 +30,7 @@ jobs:
         mysql: ["8.0", "8.4"] # supported MySQL versions
     steps:
       - name: Set Up Actions
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install GEOS
         run: sudo apt-get install libgeos-dev
       - name: Set Up Ruby

@@ -54,6 +54,7 @@ jobs:
       - name: Create Database
         run: |
           mysql -uroot -h127.0.0.1 -ppassword -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test;'
+          mysql -uroot -h127.0.0.1 -ppassword -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test2;'
           mysql -uroot -h127.0.0.1 -ppassword -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_tasks_test;'
       - name: Run Tests
         run: bundle exec rake test

@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [ruby-head, "4.0", "3.4", "3.3", "3.2", "3.1"]
+        ruby: ["4.0", "3.4", "3.3", "3.2", "3.1"]
         mysql: ["8.0", "8.4"] # supported MySQL versions
     steps:
       - name: Set Up Actions

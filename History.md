@@ -1,3 +1,8 @@
+### 7.3.1 / 2026-03-31
+
+* Remove remaining PostGIS-oriented test shims and rename the schema fixture for mysql2rgeo
+* Enforce MySQL 8.0.0+ at adapter initialization time
+
 ### 7.3.0 / 2026-03-30
 
 * Sync the upstream ActiveRecord 9.0-stable test tree and make the suite pass on MySQL 8.0

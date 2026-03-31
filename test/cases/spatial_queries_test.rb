@@ -4,11 +4,6 @@ require_relative "../test_helper"
 
 module Mysql2Rgeo
   class SpatialQueriesTest < ActiveSupport::TestCase
-    def teardown
-      SpatialModel.lease_connection.drop_table(:spatial_models, if_exists: true)
-      SpatialModel.reset_column_information
-    end
-
     def test_query_point
       create_model
       obj = SpatialModel.create!(latlon: factory.point(1, 2))
@@ -118,6 +113,13 @@ module Mysql2Rgeo
       assert_equal(id, obj2.id)
       obj3 = SpatialModel.find_by(Arel.spatial(query_point).st_distance(SpatialModel.arel_table[:latlon]).gt(2))
       assert_nil(obj3)
+    end
+
+    def test_geo_safe_where
+      create_model
+      SpatialModel.create!(latlon_geo: geographic_factory.point(-72.1, 42.1))
+      SpatialModel.create!(latlon_geo: geographic_factory.point(10.0, 10.0))
+      assert_equal 1, SpatialModel.where("ST_DWITHIN(latlon_geo, ?, 500)", geographic_factory.point(-72.099, 42.099)).count
     end
 
     private

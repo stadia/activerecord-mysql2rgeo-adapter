@@ -26,13 +26,6 @@ module Mysql2Rgeo
       create_invalid_attributes
     end
 
-    def teardown
-      InvalidAttribute.lease_connection.drop_table(:invalid_attributes, if_exists: true)
-      SpatialFoo.lease_connection.drop_table(:spatial_foos, if_exists: true)
-      Foo.lease_connection.drop_table(:foos, if_exists: true)
-      [InvalidAttribute, SpatialFoo, Foo].each(&:reset_column_information)
-    end
-
     def test_invalid_attribute
       assert_raises(ArgumentError) do
         InvalidAttribute.attribute(:attr, :invalid_attr)

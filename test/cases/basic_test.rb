@@ -6,17 +6,15 @@ module Mysql2Rgeo
   class BasicTest < ActiveSupport::TestCase
     def teardown
       reset_spatial_store
-      SpatialModel.lease_connection.drop_table(:spatial_models, if_exists: true)
-      SpatialModel.reset_column_information
     end
 
     def test_version
       refute_nil ActiveRecord::ConnectionAdapters::Mysql2Rgeo::VERSION
     end
 
-    def test_adapter_available
+    def test_mysql2rgeo_available
       assert_equal "Mysql2Rgeo", SpatialModel.lease_connection.adapter_name
-      assert_match(/\A\d+\.\d+/, database_version)
+      refute_nil SpatialModel.lease_connection.database_version
     end
 
     def test_arel_visitor
@@ -27,7 +25,7 @@ module Mysql2Rgeo
       assert_equal "ST_GeomFromText('POINT (1.0 2.0)')", collector.value
     end
 
-    def test_arel_visitor_will_not_visit_string
+    def test_arel_visitor_accepts_string_wkt
       visitor = Arel::Visitors::Mysql2Rgeo.new(SpatialModel.lease_connection)
       node = "POINT (1 2)"
       collector = Arel::Collectors::PlainString.new

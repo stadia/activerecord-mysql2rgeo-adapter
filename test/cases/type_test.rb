@@ -37,7 +37,7 @@ module Mysql2Rgeo
     private
 
     def spatial
-      ActiveRecord::Type::Spatial
+      ActiveRecord::ConnectionAdapters::Mysql2Rgeo::OID::Spatial
     end
   end
 end

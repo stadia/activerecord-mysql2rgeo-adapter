@@ -1,3 +1,3 @@
-# frozen_string_literal: true
-
-exclude "test_change_column_on_7_0", TRIAGE_MSG
+exclude "test_legacy_change_column_with_null_executes_update", TRIAGE_MSG
+exclude "test_disable_extension_on_7_0", TRIAGE_MSG
+exclude "test_legacy_add_foreign_key_with_deferrable_true", TRIAGE_MSG

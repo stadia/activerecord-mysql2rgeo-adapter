@@ -9,6 +9,7 @@ require "minitest/excludes"
 require "erb"
 require "byebug" if ENV["BYEBUG"]
 require "activerecord-mysql2rgeo-adapter"
+require "timeout"
 
 TRIAGE_MSG = "Needs triage and fixes. See #378"
 
@@ -55,50 +56,40 @@ module ActiveRecord
   end
 end
 
-if ENV["ARCONN"]
-  # only install activerecord schema if we need it
-  require "cases/helper"
+ENV["ARCONN"] ||= "mysql2rgeo"
 
-  def load_mysql_specific_schema
-    original_stdout = $stdout
-    $stdout = StringIO.new
+# We need to require this before the original `cases/helper`
+# to make sure we patch load schema before it runs.
+require "support/load_schema_helper"
 
-    load "schema/mysql_specific_schema.rb"
+module LoadSchemaHelperExt
+  # Postgis uses the postgresql specific schema.
+  # We need to explicit that behavior.
+  def load_postgis_specific_schema
+    # silence verbose schema loading
+    shh do
+      load "schema/mysql_specific_schema.rb"
 
-    ActiveRecord::FixtureSet.reset_cache
-  ensure
-    $stdout = original_stdout
-  end
-
-  load_mysql_specific_schema
-else
-  module ActiveRecord
-    class Base
-      DATABASE_CONFIG_PATH = "#{__dir__}/database.yml".freeze
-
-      def self.test_connection_hash
-        conns = YAML.safe_load(ERB.new(File.read(DATABASE_CONFIG_PATH)).result)
-        conn_hash = conns["connections"]["mysql2rgeo"]["arunit"]
-        conn_hash.merge(adapter: "mysql2rgeo", prepared_statements: false)
-      end
-
-      def self.establish_test_connection
-        establish_connection test_connection_hash
-      end
+      ActiveRecord::FixtureSet.reset_cache
     end
   end
 
-  ActiveRecord::Base.establish_test_connection
+  def load_schema
+    super
+    load_postgis_specific_schema
+  end
 
-  conn = ActiveRecord::Base.connection
-  conn.execute <<~SQL
-    CREATE SPATIAL REFERENCE SYSTEM IF NOT EXISTS 3785
-    NAME 'WGS 84 / Popular Visualisation Sphere'
-    ORGANIZATION 'EPSG' IDENTIFIED BY 3785
-    DEFINITION 'PROJCS["WGS 84 / Popular Visualisation Sphere",GEOGCS["WGS 84",DATUM["World Geodetic System 1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.017453292519943278,AUTHORITY["EPSG","9122"]],AXIS["Lat",NORTH],AXIS["Lon",EAST],AUTHORITY["EPSG","4326"]],PROJECTION["Popular Visualisation Pseudo Mercator",AUTHORITY["EPSG","1024"]],PARAMETER["Latitude of natural origin",0,AUTHORITY["EPSG","8801"]],PARAMETER["Longitude of natural origin",0,AUTHORITY["EPSG","8802"]],PARAMETER["False easting",0,AUTHORITY["EPSG","8806"]],PARAMETER["False northing",0,AUTHORITY["EPSG","8807"]],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["X",EAST],AXIS["Y",NORTH],AUTHORITY["EPSG","3785"]]'
-    DESCRIPTION 'Added for upstream compatibility'
-  SQL
+  private def shh
+    original_stdout = $stdout
+    $stdout = StringIO.new
+    yield
+  ensure
+    $stdout = original_stdout
+  end
 end
+LoadSchemaHelper.prepend(LoadSchemaHelperExt)
+
+require "cases/helper"
 
 ActiveRecord::SchemaDumper.ignore_tables = %w[
   layer
@@ -111,14 +102,14 @@ ActiveRecord::SchemaDumper.ignore_tables = %w[
 class SpatialModel < ActiveRecord::Base
 end
 
-require "timeout"
-
 module TestTimeoutHelper
-  def time_it(&block)
+  def time_it
     t0 = Minitest.clock_time
 
     timeout = ENV.fetch("TEST_TIMEOUT", 10).to_i
-    Timeout.timeout(timeout, Timeout::Error, "Test took over #{timeout} seconds to finish", &block)
+    Timeout.timeout(timeout, Timeout::Error, "Test took over #{timeout} seconds to finish") do
+      yield
+    end
   ensure
     self.time = Minitest.clock_time - t0
   end
@@ -151,4 +142,44 @@ module ActiveSupport
       spatial_factory_store.default = nil
     end
   end
+end
+
+if ENV["JSON_REPORTER"]
+  puts "Generating JSON report: #{ENV["JSON_REPORTER"]}"
+  module Minitest
+    class JSONReporter < StatisticsReporter
+      def report
+        super
+        io.write(
+          {
+            seed: Minitest.seed,
+            assertions: assertions,
+            count: count,
+            failed_tests: results.reject(&:skipped?), # .failure.message
+            total_time: total_time,
+            failures: failures,
+            errors: errors,
+            warnings: warnings,
+            skips: skips,
+          }.to_json
+        )
+      end
+    end
+
+    def self.plugin_json_reporter_init(*)
+      reporter << JSONReporter.new(File.open(ENV["JSON_REPORTER"], "w"))
+    end
+
+    self.load_plugins
+    self.extensions << "json_reporter"
+  end
+end
+
+# Using '--fail-fast' may cause the rails plugin to raise Interrupt when recording
+# a test. This would prevent other plugins from recording it. Hence we make sure
+# that rails plugin is loaded last.
+Minitest.load_plugins
+if Minitest.extensions.include?("rails")
+  Minitest.extensions.delete("rails")
+  Minitest.extensions << "rails"
 end

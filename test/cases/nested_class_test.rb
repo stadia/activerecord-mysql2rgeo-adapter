@@ -18,10 +18,7 @@ module Mysql2Rgeo
         t.column "latlon", :st_point, srid: 3785
       end
       assert_empty Foo::Bar.all
-    end
-
-    def teardown
-      Foo::Bar.lease_connection.drop_table(:foo_bars, if_exists: true)
+      Foo::Bar.lease_connection.drop_table(:foo_bars)
     end
   end
 end

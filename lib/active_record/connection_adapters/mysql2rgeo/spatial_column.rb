@@ -18,12 +18,12 @@ module ActiveRecord # :nodoc:
             build_from_sql_type(sql_type_metadata.sql_type)
           end
           if ActiveRecord.version >= Gem::Version.new("8.1.0")
+            # AR 8.1: Column#initialize(name, cast_type, default, sql_type_metadata, null, default_function, ...)
             super(name, cast_type, default, sql_type_metadata, null, default_function, collation: collation, comment: comment)
           else
-            # AR 8.0 Column#initialize doesn't have default_function parameter
-            super(name, cast_type, default, sql_type_metadata, null, collation: collation, comment: comment)
-            # Ensure @sql_type_metadata is preserved after super call in AR 8.0
-            @sql_type_metadata = sql_type_metadata
+            # AR 8.0: Column#initialize(name, default, sql_type_metadata, null, default_function, ...)
+            # Note: cast_type parameter doesn't exist in AR 8.0
+            super(name, default, sql_type_metadata, null, default_function, collation: collation, comment: comment)
           end
           if spatial?
             if @srid

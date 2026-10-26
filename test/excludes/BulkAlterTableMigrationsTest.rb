@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 exclude "test_changing_index", TRIAGE_MSG
 exclude "test_changing_columns", TRIAGE_MSG
 exclude "test_removing_index", TRIAGE_MSG

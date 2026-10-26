@@ -1,2 +1,4 @@
+# frozen_string_literal: true
+
 exclude "test_schema_dump_with_timestamptz_datetime_format", TRIAGE_MSG
 exclude "test_schema_dumps_unique_constraints", TRIAGE_MSG

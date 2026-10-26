@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-load SCHEMA_ROOT + "/mysql2_specific_schema.rb" if defined?(SCHEMA_ROOT)
+load "#{SCHEMA_ROOT}/mysql2_specific_schema.rb" if defined?(SCHEMA_ROOT)
 
 ActiveRecord::Schema.define do
   create_table :limitless_fields, force: true do |t|

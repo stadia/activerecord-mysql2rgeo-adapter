@@ -102,7 +102,8 @@ module ActiveRecord
 
       class << self
         def native_database_types
-          super.merge(
+          # ActiveRecord < 8.1 only has the instance method, backed by NATIVE_DATABASE_TYPES.
+          (defined?(super) ? super : self::NATIVE_DATABASE_TYPES).merge(
             geography: { name: "geometry" },
             geometry: { name: "geometry" },
             geometrycollection: { name: "geometrycollection" },
@@ -226,7 +227,7 @@ module ActiveRecord
       private
 
       def type_map
-        if key = extended_type_map_key
+        if (key = extended_type_map_key)
           self.class::EXTENDED_TYPE_MAPS.compute_if_absent(key) do
             self.class.extended_type_map(**key)
           end

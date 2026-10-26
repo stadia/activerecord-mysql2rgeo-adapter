@@ -1,1 +1,3 @@
+# frozen_string_literal: true
+
 exclude "test_add_column_with_datetime_in_timestamptz_mode", TRIAGE_MSG

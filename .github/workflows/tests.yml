@@ -34,16 +34,14 @@ jobs:
           MYSQL_PASSWORD: password
           MYSQL_ROOT_PASSWORD: password
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-    env:
-      BUNDLE_GEMFILE: ${{matrix.gemfile}}
     strategy:
       fail-fast: false
       matrix:
-        ruby: [ruby-head, "4.0", "3.4", "3.3", "3.2"]
+        ruby: ["4.0", "3.4", "3.3"]
         mysql: ["8.0", "8.4"] # supported MySQL versions
     steps:
       - name: Set Up Actions
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install GEOS
         run: sudo apt-get install libgeos-dev
       - name: Set Up Ruby
@@ -54,6 +52,7 @@ jobs:
       - name: Create Database
         run: |
           mysql -uroot -h127.0.0.1 -ppassword -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test;'
+          mysql -uroot -h127.0.0.1 -ppassword -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_adapter_test2;'
           mysql -uroot -h127.0.0.1 -ppassword -e 'CREATE DATABASE IF NOT EXISTS mysql2rgeo_tasks_test;'
       - name: Run Tests
         run: bundle exec rake test

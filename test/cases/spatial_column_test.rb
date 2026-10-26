@@ -70,9 +70,9 @@ module Mysql2Rgeo
     def test_yaml_round_trip_geometry_with_m
       col = build_spatial_column(
         "region",
-        sql_type: "geometry(PolygonM,3785)",
+        sql_type: "geometry(PolygonM,#{TEST_GEOMETRIC_SRID})",
         type: :geometry,
-        spatial: { type: "Polygon", srid: 3785, has_z: false, has_m: true }
+        spatial: { type: "Polygon", srid: TEST_GEOMETRIC_SRID, has_z: false, has_m: true }
       )
       restored = yaml_round_trip(col)
 
@@ -80,8 +80,8 @@ module Mysql2Rgeo
       assert_equal RGeo::Feature::Polygon,    restored.geometric_type
       assert_equal false,                     restored.has_z
       assert_equal true,                      restored.has_m
-      assert_equal 3785,                      restored.srid
-      assert_equal({ srid: 3785, type: "st_polygon", has_m: true }, restored.limit)
+      assert_equal TEST_GEOMETRIC_SRID,       restored.srid
+      assert_equal({ srid: TEST_GEOMETRIC_SRID, type: "st_polygon", has_m: true }, restored.limit)
     end
 
     def test_yaml_round_trip_geometry_with_z_and_m
@@ -164,9 +164,9 @@ module Mysql2Rgeo
     def test_equality_after_yaml_round_trip_with_z_and_m
       col = build_spatial_column(
         "region",
-        sql_type: "geometry(PolygonZM,3785)",
+        sql_type: "geometry(PolygonZM,#{TEST_GEOMETRIC_SRID})",
         type: :geometry,
-        spatial: { type: "Polygon", srid: 3785, has_z: true, has_m: true }
+        spatial: { type: "Polygon", srid: TEST_GEOMETRIC_SRID, has_z: true, has_m: true }
       )
       restored = yaml_round_trip(col)
 
@@ -183,9 +183,9 @@ module Mysql2Rgeo
       )
       col2 = build_spatial_column(
         "geom",
-        sql_type: "geometry(Geometry,3785)",
+        sql_type: "geometry(Geometry,#{TEST_GEOMETRIC_SRID})",
         type: :geometry,
-        spatial: { type: "Geometry", srid: 3785, has_z: false, has_m: false }
+        spatial: { type: "Geometry", srid: TEST_GEOMETRIC_SRID, has_z: false, has_m: false }
       )
 
       refute_equal col1, col2
@@ -273,8 +273,11 @@ module Mysql2Rgeo
         limit: 255
       )
       mysql_metadata = ActiveRecord::ConnectionAdapters::MySQL::TypeMetadata.new(type_metadata)
-      string_type = ActiveRecord::Type.lookup(:string, adapter: :mysql2)
-      string_col = ActiveRecord::ConnectionAdapters::MySQL::Column.new("name", string_type, nil, mysql_metadata, true)
+      column_args = ["name", nil, mysql_metadata, true]
+      if ActiveRecord::ConnectionAdapters::Mysql2Rgeo::SpatialColumn::COLUMN_TAKES_CAST_TYPE
+        column_args.insert(1, ActiveRecord::Type.lookup(:string, adapter: :mysql2))
+      end
+      string_col = ActiveRecord::ConnectionAdapters::MySQL::Column.new(*column_args)
 
       refute_equal spatial_col, string_col
     end
@@ -310,9 +313,9 @@ module Mysql2Rgeo
     def test_hash_equal_columns_have_same_hash_with_z_m
       col = build_spatial_column(
         "region",
-        sql_type: "geometry(PolygonZM,3785)",
+        sql_type: "geometry(PolygonZM,#{TEST_GEOMETRIC_SRID})",
         type: :geometry,
-        spatial: { type: "Polygon", srid: 3785, has_z: true, has_m: true }
+        spatial: { type: "Polygon", srid: TEST_GEOMETRIC_SRID, has_z: true, has_m: true }
       )
       restored = yaml_round_trip(col)
 
@@ -375,9 +378,9 @@ module Mysql2Rgeo
     def test_encode_with_geometry_has_z_has_m
       col = build_spatial_column(
         "region",
-        sql_type: "geometry(PolygonZM,3785)",
+        sql_type: "geometry(PolygonZM,#{TEST_GEOMETRIC_SRID})",
         type: :geometry,
-        spatial: { type: "Polygon", srid: 3785, has_z: true, has_m: true }
+        spatial: { type: "Polygon", srid: TEST_GEOMETRIC_SRID, has_z: true, has_m: true }
       )
       coder = {}
       col.encode_with(coder)
@@ -386,8 +389,8 @@ module Mysql2Rgeo
       assert_equal RGeo::Feature::Polygon,  coder["geometric_type"]
       assert_equal true,                    coder["has_m"]
       assert_equal true,                    coder["has_z"]
-      assert_equal 3785,                    coder["srid"]
-      assert_equal({ srid: 3785, type: "st_polygon", has_z: true, has_m: true }, coder["limit"])
+      assert_equal TEST_GEOMETRIC_SRID,     coder["srid"]
+      assert_equal({ srid: TEST_GEOMETRIC_SRID, type: "st_polygon", has_z: true, has_m: true }, coder["limit"])
     end
 
     def test_encode_with_simple_geometry

@@ -27,10 +27,10 @@ module Mysql2Rgeo
       create_model
       obj = SpatialModel.create!(latlon: factory.point(1, 2))
       id = obj.id
-      obj2 = SpatialModel.find_by(latlon: "SRID=3785;POINT(1 2)")
+      obj2 = SpatialModel.find_by(latlon: "SRID=#{TEST_GEOMETRIC_SRID};POINT(1 2)")
       refute_nil(obj2)
       assert_equal(id, obj2.id)
-      obj3 = SpatialModel.find_by(latlon: "SRID=3785;POINT(2 2)")
+      obj3 = SpatialModel.find_by(latlon: "SRID=#{TEST_GEOMETRIC_SRID};POINT(2 2)")
       assert_nil(obj3)
     end
 
@@ -38,10 +38,10 @@ module Mysql2Rgeo
       create_model
       obj = SpatialModel.create!(latlon: factory.point(1, 2))
       id = obj.id
-      obj2 = SpatialModel.find_by(SpatialModel.arel_table[:latlon].st_distance("SRID=3785;POINT(2 3)").lt(2))
+      obj2 = SpatialModel.find_by(SpatialModel.arel_table[:latlon].st_distance("SRID=#{TEST_GEOMETRIC_SRID};POINT(2 3)").lt(2))
       refute_nil(obj2)
       assert_equal(id, obj2.id)
-      obj3 = SpatialModel.find_by(SpatialModel.arel_table[:latlon].st_distance("SRID=3785;POINT(2 3)").gt(2))
+      obj3 = SpatialModel.find_by(SpatialModel.arel_table[:latlon].st_distance("SRID=#{TEST_GEOMETRIC_SRID};POINT(2 3)").gt(2))
       assert_nil(obj3)
     end
 
@@ -50,7 +50,7 @@ module Mysql2Rgeo
       obj = SpatialModel.create!(latlon: factory.point(1, 2))
       id = obj.id
 
-      query_point = parser.parse("SRID=3785;POINT(2 3)")
+      query_point = parser.parse("SRID=#{TEST_GEOMETRIC_SRID};POINT(2 3)")
       obj2 = SpatialModel.find_by(Arel.spatial(query_point).st_distance(SpatialModel.arel_table[:latlon]).lt(2))
       refute_nil(obj2)
       assert_equal(id, obj2.id)
@@ -107,7 +107,7 @@ module Mysql2Rgeo
       obj = SpatialModel.create!(latlon: factory.point(1, 2))
       id = obj.id
 
-      query_point = parser.parse("SRID=3785;POINT(2 3)")
+      query_point = parser.parse("SRID=#{TEST_GEOMETRIC_SRID};POINT(2 3)")
       obj2 = SpatialModel.find_by(Arel.spatial(query_point).st_distance(SpatialModel.arel_table[:latlon]).lt(2))
       refute_nil(obj2)
       assert_equal(id, obj2.id)
@@ -127,10 +127,10 @@ module Mysql2Rgeo
 
     def create_model
       SpatialModel.lease_connection.create_table(:spatial_models, force: true) do |t|
-        t.column "latlon", :st_point, srid: 3785
+        t.column "latlon", :st_point, srid: TEST_GEOMETRIC_SRID
         t.column "latlon_geo", :st_point, srid: 4326, geographic: true
-        t.column "points", :multi_point, srid: 3785
-        t.column "path", :line_string, srid: 3785
+        t.column "points", :multi_point, srid: TEST_GEOMETRIC_SRID
+        t.column "path", :line_string, srid: TEST_GEOMETRIC_SRID
       end
       SpatialModel.reset_column_information
     end

@@ -4,6 +4,8 @@ source "https://rubygems.org"
 gemspec
 
 gem "mysql2", platform: :ruby
+# ActiveSupport 7.1 passes quirks_mode to JSON.generate, which json >= 3.0 rejects.
+gem "json", "< 3"
 gem "byebug" if ENV["BYEBUG"]
 
 def activerecord_version

@@ -1,7 +1,7 @@
 # Mysql2Rgeo ActiveRecord Adapter
 
 [![Gem Version](https://badge.fury.io/rb/activerecord-mysql2rgeo-adapter.svg)](https://badge.fury.io/rb/activerecord-mysql2rgeo-adapter)
-![Test status](https://github.com/stadia/activerecord-mysql2rgeo-adapter/actions/workflows/tests.yml/badge.svg?branch=main)
+![Test status](https://github.com/stadia/activerecord-mysql2rgeo-adapter/actions/workflows/tests.yml/badge.svg?branch=9.0-stable)
 
 The activerecord-mysql2rgeo-adapter provides access to MySQL spatial features
 from ActiveRecord. It uses the
@@ -37,17 +37,17 @@ Gemfile:
 gem 'activerecord-mysql2rgeo-adapter'
 ```
 
-#### The main branch supports ActiveRecord 8.1.x
+#### Version 9.0.x supports ActiveRecord 8.0.x
 
 Requirements:
 
 ```
-ActiveRecord 8.1.x
+ActiveRecord 8.0.x
 Ruby 3.2+ (CRuby; JRuby is not supported)
 MySQL 8.0 or 8.4
 ```
 
-The test suite is synchronized against the upstream Active Record 8.1
+The test suite is synchronized against the upstream Active Record 8.0
 test tree, with MySQL-specific setup and excludes kept in this repository.
 
 ##### database.yml

@@ -4,6 +4,9 @@ module ActiveRecord # :nodoc:
   module ConnectionAdapters # :nodoc:
     module Mysql2Rgeo # :nodoc:
       class SpatialColumn < ConnectionAdapters::MySQL::Column # :nodoc:
+        # ActiveRecord 8.1 added cast_type as Column#initialize's second argument.
+        COLUMN_TAKES_CAST_TYPE = ActiveRecord.gem_version >= Gem::Version.new("8.1")
+
         def initialize(name, cast_type, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil,
 spatial: nil, array: false, **)
           if default.respond_to?(:sql_type) && (sql_type_metadata.nil? || sql_type_metadata == true || sql_type_metadata == false)
@@ -34,7 +37,11 @@ spatial: nil, array: false, **)
             # @geometric_type = geo_type_from_sql_type(sql_type)
             build_from_sql_type(sql_type_metadata.sql_type)
           end
-          super(name, cast_type, default, sql_type_metadata, null, default_function, collation: collation, comment: comment)
+          if COLUMN_TAKES_CAST_TYPE
+            super(name, cast_type, default, sql_type_metadata, null, default_function, collation: collation, comment: comment)
+          else
+            super(name, default, sql_type_metadata, null, default_function, collation: collation, comment: comment)
+          end
           return unless spatial?
           return unless @srid
 

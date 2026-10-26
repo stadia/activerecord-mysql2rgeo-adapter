@@ -1,6 +1,10 @@
+### 9.1.0 / 2026-10-26
+
+* Support ActiveRecord 8.1 (`~> 8.1.0`) with rgeo-activerecord 8.1, matching upstream activerecord-postgis-adapter 11.1; requires Ruby 3.2+
+
 ### 9.0.0 / 2026-10-26
 
-* Support ActiveRecord 8.1 (`~> 8.1.0`) with rgeo-activerecord 8.1; requires Ruby 3.2+
+* Support ActiveRecord 8.0 (`~> 8.0.0`) with rgeo-activerecord 8.0, matching upstream activerecord-postgis-adapter 11.0.0; requires Ruby 3.2+
 * Stop treating raw String nodes in Arel as WKT: the visitor no longer defines `visit_String`, matching upstream activerecord-postgis-adapter. Spatial function arguments (`st_distance("POINT(1 2)")`, `SpatialConstantNode`, etc.) still accept WKT strings and generate the same SQL
 * **Breaking:** a raw String passed to a plain Arel node (e.g. `Arel::Nodes::NamedFunction.new("ST_IsValid", ["POINT(1 2)"])`) now raises `Arel::Visitors::UnsupportedVisitError` instead of becoming `ST_GeomFromText(...)`. Wrap it in `RGeo::ActiveRecord::SpatialConstantNode` or pass an RGeo object
 * Use rgeo-activerecord's `visit_RGeo_ActiveRecord_SpatialNamedFunction` so spatial arguments are visited in spatial context

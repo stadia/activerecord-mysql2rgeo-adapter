@@ -37,7 +37,7 @@ Gemfile:
 gem 'activerecord-mysql2rgeo-adapter'
 ```
 
-#### The main branch supports ActiveRecord 8.1.x
+#### Version 9.1.x supports ActiveRecord 8.1.x (use 9.0.x for ActiveRecord 8.0.x)
 
 Requirements:
 

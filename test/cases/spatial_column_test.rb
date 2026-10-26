@@ -273,8 +273,11 @@ module Mysql2Rgeo
         limit: 255
       )
       mysql_metadata = ActiveRecord::ConnectionAdapters::MySQL::TypeMetadata.new(type_metadata)
-      string_type = ActiveRecord::Type.lookup(:string, adapter: :mysql2)
-      string_col = ActiveRecord::ConnectionAdapters::MySQL::Column.new("name", string_type, nil, mysql_metadata, true)
+      column_args = ["name", nil, mysql_metadata, true]
+      if ActiveRecord::ConnectionAdapters::Mysql2Rgeo::SpatialColumn::COLUMN_TAKES_CAST_TYPE
+        column_args.insert(1, ActiveRecord::Type.lookup(:string, adapter: :mysql2))
+      end
+      string_col = ActiveRecord::ConnectionAdapters::MySQL::Column.new(*column_args)
 
       refute_equal spatial_col, string_col
     end

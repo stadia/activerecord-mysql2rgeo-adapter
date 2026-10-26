@@ -1,13 +1,11 @@
 # Mysql2Rgeo ActiveRecord Adapter
 
 [![Gem Version](https://badge.fury.io/rb/activerecord-mysql2rgeo-adapter.svg)](https://badge.fury.io/rb/activerecord-mysql2rgeo-adapter)
-![Test status](https://github.com/stadia/activerecord-mysql2rgeo-adapter/actions/workflows/tests.yml/badge.svg?branch=main)
-![Codeql](https://github.com/stadia/activerecord-mysql2rgeo-adapter/actions/workflows/codeql-analysis.yml/badge.svg?branch=main)
-[![Code Climate](https://codeclimate.com/github/stadia/activerecord-mysql2rgeo-adapter.png)](https://codeclimate.com/github/stadia/activerecord-mysql2rgeo-adapter)
+![Test status](https://github.com/stadia/activerecord-mysql2rgeo-adapter/actions/workflows/tests.yml/badge.svg?branch=7.0-stable)
 
-The activerecord-mysql2rgeo-adapter provides access to features
-of the MySQL geospatial database from ActiveRecord. It uses the
-[RGeo](http://github.com/rgeo/rgeo) library to represent spatial data in Ruby.
+The activerecord-mysql2rgeo-adapter provides access to MySQL spatial features
+from ActiveRecord. It uses the
+[RGeo](https://github.com/rgeo/rgeo) library to represent spatial data in Ruby.
 
 This project is currently maintained and CI-tested against MySQL 8.0 and 8.4.
 MySQL 5.7 is not supported.
@@ -39,22 +37,13 @@ Gemfile:
 gem 'activerecord-mysql2rgeo-adapter'
 ```
 
-Gemfile for JRuby:
-
-```ruby
-gem 'activerecord-mysql2rgeo-adapter'
-gem 'jdbc-mysql', platform: :jruby
-gem 'activerecord-jdbc-adapter', platform: :jruby
-gem 'ffi-geos', platform: :jruby
-```
-
-#### Version 7.x supports ActiveRecord 7.0+
+#### Version 7.3.x supports ActiveRecord 7.1.x
 
 Requirements:
 
 ```
-ActiveRecord 7.0+
-Ruby 3.0+ / JRuby
+ActiveRecord 7.1.x
+Ruby 3.0+ (CRuby; JRuby is not supported)
 MySQL 8.0 or 8.4
 ```
 
@@ -76,7 +65,7 @@ Here are some other options that are supported:
 ```
 development:
   adapter: mysql2rgeo
-  encoding: unicode
+  encoding: utf8mb4
   pool: 5
   database: my_app_development    # your database name
   username: my_app_user           # the username your app will use to connect
@@ -93,7 +82,7 @@ Please see the README documentation for `rgeo` for more information: https://git
 This section covers starting a new Rails application from scratch. If you need
 to add geospatial capabilities to an existing Rails application (i.e. you need
 to convert a non-spatial database to a spatial database), see the section on
-"Upgrading a Database With Spatial Features" below.
+"Upgrading an Existing Database" below.
 
 To create a new Rails application using `activerecord-mysql2rgeo-adapter`, start by
 using the mysql2 adapter.
@@ -108,19 +97,17 @@ Add the adapter gem to the Gemfile:
 gem 'activerecord-mysql2rgeo-adapter'
 ```
 
-Once you have set up your database config, run:
+Edit your `config/database.yml` as described above, then run:
 
-```rake
-rake db:create
+```sh
+bin/rails db:create
 ```
 
 to create your development database.
 
-Once you have installed the adapter, edit your `config/database.yml` as described above.
-
 ## Upgrading an Existing Database
 
-If you have an existing Rails app that uses Mysql,
+If you have an existing Rails app that uses MySQL,
 and you want to add geospatial features, follow these steps.
 
 First, add the `activerecord-mysql2rgeo-adapter` gem to the Gemfile, and update
@@ -135,19 +122,18 @@ To store spatial data, you must create a column with a spatial type. MySQL
 provides a variety of spatial types, including point, linestring, polygon, and
 different kinds of collections. These types are defined in a standard produced
 by the Open Geospatial Consortium. You can specify options indicating the coordinate
-system and number of coordinates for the values you are storing.
+system for the values you are storing.
 
 The activerecord-mysql2rgeo-adapter extends ActiveRecord's migration syntax to
-support these spatial types. The following example creates five spatial
+support these spatial types. The following example creates four spatial
 columns in a table:
 
 ```ruby
 create_table :my_spatial_table do |t|
   t.column :shape1, :geometry
   t.geometry :shape2
-  t.line_string :path
-  t.point :lonlat
-  t.point :lonlatheight
+  t.line_string :path, srid: 3857
+  t.point :lonlat, srid: 4326, geographic: true, null: false
 end
 ```
 
@@ -160,22 +146,21 @@ You can create a column either by invoking `column` or invoking the name of the 
 
 The third column, "path", has a specific geometric type, `line_string`. It
 also specifies an SRID (spatial reference ID) that indicates which coordinate
-system it expects the data to be in. The column now has a "constraint" on it;
-it will accept only LineString data, and only data whose SRID is 3857.
+system it expects the data to be in. MySQL stores it as an `SRID 3857` column
+attribute, so the column accepts only LineString data whose SRID is 3857.
 
 The fourth column, "lonlat", has the `point` type, and accepts only Point
-data. Furthermore, it declares the column as "geographic", which means it
-accepts longitude/latitude data, and performs calculations such as distances
-using a spheroidal domain.
+data with SRID 4326. It is also declared "geographic", which makes the adapter
+read its values with RGeo's geographic (spherical) factory. MySQL itself still
+stores it as a `point` column. It is `NOT NULL` so it can have a spatial index.
 
-The fifth column, "lonlatheight", is a geographic (longitude/latitude) point
-that also includes a third "z" coordinate that can be used to store height
-information.
+MySQL stores 2D coordinates only; Z and M values are not supported.
 
 The following are the data types understood by MySQL and exposed by
 activerecord-mysql2rgeo-adapter:
 
 * `:geometry` -- Any geometric type
+* `:geography` -- A `geometry` column read with a geographic factory
 * `:point` -- Point data
 * `:line_string` -- LineString data
 * `:polygon` -- Polygon data
@@ -184,7 +169,9 @@ activerecord-mysql2rgeo-adapter:
 * `:multi_line_string` -- A collection of LineStrings
 * `:multi_polygon` -- A collection of Polygons
 
-To create a spatial index, add `type: :spatial` to your index:
+To create a spatial index, add `type: :spatial` to your index. MySQL requires
+the column to be `NOT NULL`, and the optimizer uses the index only when the
+column has an SRID:
 
 ```ruby
 add_index :my_table, :lonlat, type: :spatial
@@ -195,10 +182,6 @@ change_table :my_table do |t|
   t.index :lonlat, type: :spatial
 end
 ```
-
-### Point and Polygon Types with ActiveRecord 4.2+
-
-Prior to version 3, the `point` and `polygon` types were supported.
 
 ### Configuring ActiveRecord
 
@@ -283,8 +266,7 @@ set the value accordingly.
 record.lonlat = 'POINT(-122 47)'  # sets the value to the given point
 ```
 
-If the WKT parsing fails, the value currently will be silently set to nil. In
-the future, however, this will raise an exception.
+If the WKT parsing fails, the value is silently set to nil.
 
 ```ruby
 record.lonlat = 'POINT(x)'         # sets the value to nil

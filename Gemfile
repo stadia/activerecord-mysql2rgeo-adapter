@@ -4,8 +4,6 @@ source "https://rubygems.org"
 gemspec
 
 gem "mysql2", platform: :ruby
-gem "activerecord-jdbc-adapter", platform: :jruby
-gem "ffi-geos", platform: :jruby
 gem "byebug" if ENV["BYEBUG"]
 
 def activerecord_version

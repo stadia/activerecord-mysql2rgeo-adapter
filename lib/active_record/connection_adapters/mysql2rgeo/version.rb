@@ -3,7 +3,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module Mysql2Rgeo
-      VERSION = "8.0.4"
+      VERSION = "9.0.0"
     end
   end
 end

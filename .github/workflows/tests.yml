@@ -34,8 +34,6 @@ jobs:
           MYSQL_PASSWORD: password
           MYSQL_ROOT_PASSWORD: password
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-    env:
-      BUNDLE_GEMFILE: ${{matrix.gemfile}}
     strategy:
       fail-fast: false
       matrix:

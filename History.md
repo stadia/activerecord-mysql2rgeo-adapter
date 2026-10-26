@@ -1,3 +1,8 @@
+### 7.3.2 / 2026-10-26
+
+* Add tests for spatial types at SRID 0 (maschiltz) #40
+* Internal: RuboCop style cleanup with no behavior change, and keep CI green on json 3 (pin json < 3 for the ActiveSupport 7.1 test suite) and Ruby 3.3+
+
 ### 7.3.1 / 2026-03-31
 
 * Remove remaining PostGIS-oriented test shims and rename the schema fixture for mysql2rgeo

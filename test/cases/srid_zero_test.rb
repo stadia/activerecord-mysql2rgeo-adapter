@@ -33,7 +33,7 @@ module Mysql2Rgeo
 
       rec = klass.find(rec.id)
       assert RGeo::Feature::MultiPolygon.check_type(rec.boundary)
-      assert_equal MULTI_POLYGON_WKT, rec.boundary.to_s
+      assert_wkt MULTI_POLYGON_WKT, rec.boundary
       assert_equal 0, rec.boundary.srid
     end
 
@@ -48,7 +48,7 @@ module Mysql2Rgeo
 
       rec = klass.find(rec.id)
       assert RGeo::Feature::Polygon.check_type(rec.geom)
-      assert_equal POLYGON_WKT, rec.geom.to_s
+      assert_wkt POLYGON_WKT, rec.geom
       assert_equal 0, rec.geom.srid
     end
 
@@ -61,7 +61,7 @@ module Mysql2Rgeo
 
       rec = klass.find(rec.id)
       assert RGeo::Feature::MultiPolygon.check_type(rec.geom)
-      assert_equal MULTI_POLYGON_WKT, rec.geom.to_s
+      assert_wkt MULTI_POLYGON_WKT, rec.geom
     end
 
     def test_multi_line_string_srid_zero_round_trip
@@ -73,7 +73,7 @@ module Mysql2Rgeo
 
       rec = klass.find(rec.id)
       assert RGeo::Feature::MultiLineString.check_type(rec.paths)
-      assert_equal MULTI_LINE_STRING_WKT, rec.paths.to_s
+      assert_wkt MULTI_LINE_STRING_WKT, rec.paths
       assert_equal 0, rec.paths.srid
     end
 
@@ -138,11 +138,16 @@ module Mysql2Rgeo
       line = dump.string.lines.grep(/"boundary"/).first
       assert line, "boundary column missing from the schema dump"
       assert_match(/t\.geometry/, line)
-      assert_match(/:type\s*=>\s*"multi_polygon"/, line)
-      assert_match(/:srid\s*=>\s*0/, line)
+      assert_match(/(:type\s*=>|type:)\s*"multi_polygon"/, line)
+      assert_match(/(:srid\s*=>|srid:)\s*0/, line)
     end
 
     private
+
+    # WKT number formatting depends on the factory (GEOS writes "0", others "0.0"), so compare geometries.
+    def assert_wkt(expected, geom)
+      assert geom.rep_equals?(geom.factory.parse_wkt(expected)), "Expected #{expected}, got #{geom}"
+    end
 
     def klass
       SpatialModel

@@ -25,13 +25,14 @@ module Mysql2Rgeo
       assert_equal "ST_GeomFromText('POINT (1.0 2.0)')", collector.value
     end
 
-    def test_arel_visitor_accepts_string_wkt
+    def test_arel_visitor_will_not_visit_string
       visitor = Arel::Visitors::Mysql2Rgeo.new(SpatialModel.lease_connection)
       node = "POINT (1 2)"
       collector = Arel::Collectors::PlainString.new
 
-      visitor.accept(node, collector)
-      assert_equal "ST_GeomFromText('POINT (1 2)')", collector.value
+      assert_raises(Arel::Visitors::UnsupportedVisitError) do
+        visitor.accept(node, collector)
+      end
     end
 
     def test_set_and_get_point

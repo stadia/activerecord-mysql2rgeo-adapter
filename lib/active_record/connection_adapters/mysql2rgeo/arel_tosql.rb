@@ -24,16 +24,11 @@ module Arel # :nodoc:
         FUNC_MAP[standard_name.downcase] || standard_name
       end
 
-      def visit_String(node, collector)
+      def visit_RGeo_Feature_Instance(node, collector)
         node, srid = Mysql2Rgeo.parse_node(node)
         collector << spatial_constant_sql(node, srid)
       end
-      alias visit_RGeo_Feature_Instance visit_String
-      alias visit_RGeo_Cartesian_BoundingBox visit_String
-
-      def visit_RGeo_ActiveRecord_SpatialNamedFunction(node, collector)
-        aggregate(st_func(node.name), node, collector)
-      end
+      alias visit_RGeo_Cartesian_BoundingBox visit_RGeo_Feature_Instance
 
       def visit_in_spatial_context(node, collector)
         case node

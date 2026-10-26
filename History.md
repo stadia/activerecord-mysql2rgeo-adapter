@@ -1,3 +1,9 @@
+### 8.0.5 / 2026-10-26
+
+* Relax the activerecord requirement to `~> 7.2`, following upstream activerecord-postgis-adapter 10.0.3
+* Add tests for spatial types at SRID 0 (maschiltz) #40
+* Internal: RuboCop style cleanup with no behavior change, drop the mocha development dependency, and keep CI green on json 3 and Ruby 3.3+
+
 ### 8.0.4 / 2026-03-31
 
 * Sync the upstream ActiveRecord 10.0-stable test tree and keep the MySQL bootstrap in-repo

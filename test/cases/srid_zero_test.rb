@@ -109,7 +109,7 @@ module Mysql2Rgeo
     end
 
     def test_srid_zero_and_srid_4326_columns_coexist
-      klass.lease_connection.create_table(:spatial_models, force: true) do |t|
+      klass.connection.create_table(:spatial_models, force: true) do |t|
         t.column "boundary_zero", :multi_polygon, srid: 0
         t.column "boundary_4326", :multi_polygon, srid: 4326
       end
@@ -133,7 +133,7 @@ module Mysql2Rgeo
       create_column("boundary", :multi_polygon, srid: 0)
 
       dump = StringIO.new
-      ActiveRecord::SchemaDumper.dump(klass.connection_pool, dump)
+      ActiveRecord::SchemaDumper.dump(klass.connection, dump)
 
       line = dump.string.lines.grep(/"boundary"/).first
       assert line, "boundary column missing from the schema dump"
@@ -154,7 +154,7 @@ module Mysql2Rgeo
     end
 
     def create_column(name, type, srid:)
-      klass.lease_connection.create_table(:spatial_models, force: true) do |t|
+      klass.connection.create_table(:spatial_models, force: true) do |t|
         t.column name, type, srid: srid
       end
       klass.reset_column_information

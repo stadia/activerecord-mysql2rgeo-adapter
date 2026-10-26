@@ -34,4 +34,6 @@ group :development do
   gem "bcrypt"
   gem "sqlite3"
   gem "msgpack"
+  # minitest 6 moved Minitest::Mock out; Rails' test helpers still require "minitest/mock".
+  gem "minitest-mock"
 end
